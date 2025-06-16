@@ -20,7 +20,6 @@ namespace deepntuples {
     track_dz_(0),
     track_dxy_(0),
 
-    pca_distpv_(0),
     pca_distance_(0),
     pca_significance_(0),
 
@@ -89,7 +88,6 @@ namespace deepntuples {
       GlobalVector pairMomentum((Basic3DVector<float>)(it.track().momentum() + tt.track().momentum()));
       GlobalVector pvToPCA(cp - pvp);
 
-      float cptopv = (cp - pvp).mag();
       float pvToPCAseed = (seedPosition - pvp).mag();
       float pvToPCAtrack = (ttPoint - pvp).mag();
       float distance = dist.distance();
@@ -111,7 +109,6 @@ namespace deepntuples {
       track_t_pt_ = tt.track().pt();
       track_i_pt_ = it.track().pt();
 
-      pca_distpv_ = cptopv;
       pca_distance_ = distance;
       pca_significance_ = m.significance();
 

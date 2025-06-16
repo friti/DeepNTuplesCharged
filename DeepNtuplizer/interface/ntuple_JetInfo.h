@@ -110,6 +110,12 @@ public:
     double                    jetAbsEtaMin_;
     double                    jetAbsEtaMax_;
     bool                      SkipPU_;
+    bool                      KeepOnlyB_;
+    bool                      KeepOnlyBC_;
+    bool                      KeepOnlyUDS_;
+    bool                      KeepOnlyG_;
+    bool                      KeepOnlyPU_;
+
 
   int                      skip_jet_;
 
@@ -295,6 +301,10 @@ public:
     // jet regression targets
     float jet_genmatch_pt_;
     float jet_genmatch_wnu_pt_;
+    float jet_genmatch_eta_;
+    float jet_genmatch_wnu_eta_;
+    float jet_genmatch_phi_;
+    float jet_genmatch_wnu_phi_;
     float jet_genmatch_lep_vis_pt_;
     float jet_mumatch_pt_;
     float jet_elematch_pt_;

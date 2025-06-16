@@ -25,7 +25,6 @@ namespace deepntuples {
     const float track_phi() const { return track_phi_; }
     const float track_dz() const { return track_dz_; }
     const float track_dxy() const { return track_dxy_; }
-    const float pca_distpv() const { return pca_distpv_; }
     const float pca_distance() const { return pca_distance_; }
     const float pca_significance() const { return pca_significance_; }
     const float pcaSeed_x() const { return pcaSeed_x_; }
@@ -65,7 +64,6 @@ namespace deepntuples {
     float track_phi_;
     float track_dz_;
     float track_dxy_;
-    float pca_distpv_;
     float pca_distance_;
     float pca_significance_;
     float pcaSeed_x_;

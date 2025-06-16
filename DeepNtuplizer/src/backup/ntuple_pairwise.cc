@@ -162,7 +162,6 @@ void ntuple_pairwise::initBranches(TTree* tree){
   addBranch(tree,"n_Cpfpairs", &n_Cpfpairs_,"n_Cpfpairs_/I");
   addBranch(tree,"nCpfpairs", &nCpfpairs_,"nCpfpairs_/F");
 
-  addBranch(tree,"pair_pca_distpv", &pair_pca_distpv_,"pair_pca_distpv_[n_Cpfpairs_]/F");
   addBranch(tree,"pair_pca_distance", &pair_pca_distance_,"pair_pca_distance_[n_Cpfpairs_]/F");
   addBranch(tree,"pair_pca_significance", &pair_pca_significance_,"pair_pca_significance_[n_Cpfpairs_]/F");
 
@@ -219,8 +218,8 @@ bool ntuple_pairwise::fillBranches(const pat::Jet & jet, const size_t& jetidx, c
 
     std::vector<sorting::sortingClass<size_t> > sortedcharged, sortedneutrals;
 
-    const float jet_uncorr_pt=jet.correctedJet("Uncorrected").pt();
-    const float jet_uncorr_e=jet.correctedJet("Uncorrected").energy();
+    const float jet_uncorr_pt=-1;//jet.correctedJet("Uncorrected").pt();
+    const float jet_uncorr_e=-1;//jet.correctedJet("Uncorrected").energy();
 
     TrackInfoBuilder trackinfo(builder);
     //create collection first, to be able to do some sorting
@@ -272,7 +271,6 @@ bool ntuple_pairwise::fillBranches(const pat::Jet & jet, const size_t& jetidx, c
         //const reco::Candidate * pruned_part_match2 = Part_j_.lastPrunedRef().get();
 	float dist_vtx_12 = -1.0; //sqrt((pruned_part_match1->vertex()- pruned_part_match2->vertex()).mag2());
 	      
-	pair_pca_distpv_[counter] = trkpairinfo.pca_distpv();
 	pair_pca_distance_[counter] = trkpairinfo.pca_distance();
 	pair_pca_significance_[counter] = trkpairinfo.pca_significance();
 

@@ -48,6 +48,7 @@ class ntuple_pairwise: public ntuple_content{
 
   static constexpr size_t max_pfcand_=800;
 
+  float pair_pca_distpv_[max_pfcand_];
   float pair_pca_distance_[max_pfcand_];
   float pair_pca_significance_[max_pfcand_];
 

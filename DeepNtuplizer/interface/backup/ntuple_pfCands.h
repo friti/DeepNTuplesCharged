@@ -69,8 +69,6 @@ private:
     float  Cpfcan_firsthit_[max_pfcand_];
 
     float  Cpfcan_fromPV_[max_pfcand_];
-    float  Cpfcan_qdotp_[max_pfcand_];
-    float  Cpfcan_qoverp_[max_pfcand_];
 
     float Cpfcan_vertexChi2_[max_pfcand_];
     float Cpfcan_vertexNdof_[max_pfcand_];

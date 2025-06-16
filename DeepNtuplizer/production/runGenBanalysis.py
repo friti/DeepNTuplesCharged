@@ -8,7 +8,7 @@ import sys
 options = VarParsing.VarParsing()
 
 options.register('inputScript','',VarParsing.VarParsing.multiplicity.singleton,VarParsing.VarParsing.varType.string,"input Script")
-options.register('outputFile','rungen_output',VarParsing.VarParsing.multiplicity.singleton,VarParsing.VarParsing.varType.string,"output File (w/o .root)")
+options.register('outputFile','rungen_output2',VarParsing.VarParsing.multiplicity.singleton,VarParsing.VarParsing.varType.string,"output File (w/o .root)")
 options.register('maxEvents', 10001,VarParsing.VarParsing.multiplicity.singleton,VarParsing.VarParsing.varType.int,"maximum events")
 options.register('skipEvents', 0, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "skip N events")
 options.register('job', 0, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "job number")
@@ -369,7 +369,7 @@ if UseCHSForTrkJet:
 
    addProcessAndTask(process, "chsPFCandidatesChg",cms.EDFilter("CandPtrSelector",
      src = cms.InputTag("packedPFCandidates"),
-     cut = cms.string("charge != 0 && fromPV(0)>0 || (vertexRef().key<={} && abs(dz(0))<{})".format(
+     cut = cms.string("charge != 0 && (fromPV(0)>0 || (vertexRef().key<={} && abs(dz(0))<{}))".format(
                   primaryVertexAssociationJME.assignment.NumOfPUVtxsForCharged.value(),
                   primaryVertexAssociationJME.assignment.DzCutForChargedFromPUVtxs.value()))
      )
