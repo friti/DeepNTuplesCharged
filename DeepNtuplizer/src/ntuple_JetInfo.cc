@@ -87,6 +87,9 @@ void ntuple_JetInfo::initBranches(TTree* tree){
     addBranch(tree,"isTaum1h2p",&isTaum1h2p_, "isTaum1h2p_/I");
     addBranch(tree,"isTaum3h0p",&isTaum3h0p_, "isTaum3h0p_/I");
     addBranch(tree,"isTaum3h1p",&isTaum3h1p_, "isTaum3h1p_/I");
+    addBranch(tree,"isDiTauh",&isDiTauh_, "isDiTauh_/I");
+    addBranch(tree,"isDiTaumu",&isDiTaumu_, "isDiTaumu_/I");
+    addBranch(tree,"isDiTaue",&isDiTaue_, "isDiTaue_/I");
     addBranch(tree,"isPU",&isPU_, "isPU_/I");
     addBranch(tree,"isUndefined",&isUndefined_, "isUndefined_/I");
     addBranch(tree,"genDecay",&genDecay_, "genDecay_/F"); 
@@ -102,6 +105,8 @@ void ntuple_JetInfo::initBranches(TTree* tree){
     addBranch(tree,"jet_mumatch_pt", &jet_mumatch_pt_);
     addBranch(tree,"jet_elematch_pt", &jet_elematch_pt_);
     addBranch(tree,"jet_taumatch_pt", &jet_taumatch_pt_);
+
+    addBranch(tree,"skip_jet", &skip_jet_);
 
     // jet variables
     addBranch(tree,"jet_pt", &jet_pt_);
@@ -244,6 +249,7 @@ void ntuple_JetInfo::readEvent(const edm::Event& iEvent){
     gen_particle_eta.clear();
     gen_particle_phi.clear();
     gen_particle_mass.clear();
+    gen_particle_mother_id.clear();
     gen_particle_id.clear();
     gen_particle_status.clear();
     gen_particle_daughters_id.clear();
@@ -259,7 +265,8 @@ void ntuple_JetInfo::readEvent(const edm::Event& iEvent){
     genElectronsFromResonance4V_.clear();
     tau_gen_visible_.clear();
     tau_gen_.clear();
-
+    tau_gen_type_.clear();
+    
     genBmeson_daughter_pt_.clear();
     genBmeson_daughter_eta_.clear();
     genBmeson_daughter_phi_.clear();
@@ -493,6 +500,7 @@ void ntuple_JetInfo::readEvent(const edm::Event& iEvent){
        gen_particle_mass.push_back(gens_iter->mass());
        gen_particle_id.push_back(gens_iter->pdgId());
        gen_particle_status.push_back(gens_iter->status());
+       gen_particle_mother_id.push_back(-999);  
 
        for(size_t idau = 0; idau < gens_iter->numberOfDaughters(); idau++){
 	 gen_particle_daughters_id.push_back(gens_iter->daughter(idau)->pdgId());
@@ -517,7 +525,7 @@ void ntuple_JetInfo::readEvent(const edm::Event& iEvent){
        gen_particle_mass.push_back(gens_iter->mass());
        gen_particle_id.push_back(gens_iter->pdgId());
        gen_particle_status.push_back(gens_iter->status());
-
+       gen_particle_mother_id.push_back(-999);
        // No need to save daughters here
        igen++;
      }
@@ -531,6 +539,7 @@ void ntuple_JetInfo::readEvent(const edm::Event& iEvent){
        gen_particle_mass.push_back(gens_iter->mass());
        gen_particle_id.push_back(gens_iter->pdgId());
        gen_particle_status.push_back(gens_iter->status());
+       gen_particle_mother_id.push_back(-999);  
        igen++;
        // no need to save daughters
      }
@@ -547,6 +556,14 @@ void ntuple_JetInfo::readEvent(const edm::Event& iEvent){
        gen_particle_id.push_back(gens_iter->pdgId());
        gen_particle_status.push_back(gens_iter->status());
 
+       // save mother
+       const reco::Candidate* mother = gens_iter->mother();
+       if (mother) {
+	 gen_particle_mother_id.push_back(abs(mother->pdgId()));
+       } else {
+	 gen_particle_mother_id.push_back(-999);  
+       }
+       
        // only store the final decay particles
        for(size_t idau = 0; idau < gens_iter->numberOfDaughters(); idau++){
 	 if(not dynamic_cast<const reco::GenParticle*>(gens_iter->daughter(idau))->statusFlags().isPromptTauDecayProduct()) continue;
@@ -568,7 +585,7 @@ void ntuple_JetInfo::readEvent(const edm::Event& iEvent){
 
 //use either of these functions
 
-bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, const edm::View<pat::Jet> * coll){
+bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, const edm::View<pat::Jet> * coll ){
     if(!coll)
         throw std::runtime_error("ntuple_JetInfo::fillBranches: no jet collection");
 
@@ -580,7 +597,7 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
     static float dRCone        = 0.2;
     static float dRMatchingPF  = 0.1;
     static float ptGenLeptonMin = 8;
-    static float ptGenTauVisibleMin = 15;
+    static float ptGenTauVisibleMin = 5;
 
     // Gen leptons from resonance decay 
     std::vector<TLorentzVector> genLepFromResonance4V;
@@ -590,11 +607,16 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
     std::vector<int> genElectronsFromResonanceCharge;
     std::vector<TLorentzVector> tau_gen_visible;
     std::vector<TLorentzVector> tau_gen;
+    std::vector<int> tau_gen_type; // 0: hadronic, 1: muon, 2: electron
     std::vector<int> tau_gen_charge;
     std::vector<unsigned int> tau_gen_nch;
     std::vector<unsigned int> tau_gen_np0;
     std::vector<unsigned int> tau_gen_nnh;
+
     
+
+    std::cout<<"Jet idx "<<jetidx<<" jet pt  "<<jet.pt()<<" jet eta "<<jet.eta()<<std::endl;
+
     for(size_t igen = 0; igen < gen_particle_pt.size(); igen++){
       // select resonances like Higgs, W, Z, taus
       if(abs(gen_particle_id.at(igen)) == 25 or
@@ -625,9 +647,11 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
       }
     }
 
+    /*
     // Gen hadronic taus
     for(size_t igen = 0; igen < gen_particle_pt.size(); igen++){
       if(abs(gen_particle_id.at(igen)) == 15){ // hadronic or leptonic tau
+
 	TLorentzVector tau_gen_tmp;
 	unsigned int tau_gen_nch_tmp = 0;
 	unsigned int tau_gen_np0_tmp = 0;
@@ -658,6 +682,99 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
 	}
       }
     }
+    */
+    
+    // Gen taus (both hadronic and leptonic)
+    for(size_t igen = 0; igen < gen_particle_pt.size(); igen++){
+      if(abs(gen_particle_id.at(igen)) == 15){ // hadronic or leptonic tau
+
+	// select only gen taus with pt > 5 GeV and abs(eta)<2.5
+	if(gen_particle_pt.at(igen)<5 || abs(gen_particle_eta.at(igen))>2.5 ) continue;
+	//if (gen_particle_status.at(igen) != 1) continue;                 // Final state particles only (status=1)
+
+
+	// taus from the right mother!
+	int mother_pdgid = gen_particle_mother_id.at(igen);
+	if(mother_pdgid <0 || std::to_string(mother_pdgid).find("99000") == std::string::npos) continue;
+
+	
+	bool isHadronic = true;
+	TLorentzVector vis_tau;
+	int tau_type = 0; // 0: hadronic, 1: muon, 2: electron
+	
+	TLorentzVector tau_gen_tmp;
+	unsigned int nch_tmp = 0;
+	unsigned int np0_tmp = 0;
+	unsigned int nnh_tmp = 0;
+
+	for(size_t idau = 0; idau < gen_particle_daughters_pt.size(); idau++){
+	  if(gen_particle_daughters_igen.at(idau) != igen) continue;
+
+	  int abs_id = abs(gen_particle_daughters_id.at(idau));
+	  //std::cout<<"Tau daughter:  "<<abs_id<<std::endl;
+	  if(abs_id == 11 || abs_id == 13){ //leptonic tau, store only the lepton
+	    TLorentzVector tmp;
+	    tmp.SetPtEtaPhiM(gen_particle_daughters_pt.at(idau),
+			     gen_particle_daughters_eta.at(idau),
+			     gen_particle_daughters_phi.at(idau),
+			     gen_particle_daughters_mass.at(idau));
+	    vis_tau = tmp;
+	    tau_type = (abs_id == 11) ? 2 : 1;
+	    isHadronic = false;
+	    break;
+	  }
+	  
+
+	  // Otherwise it's part of a hadronic tau
+	  if(abs_id != 12 && abs_id != 14 && abs_id != 16){ // skip neutrinos
+	    TLorentzVector tmp;
+	    tmp.SetPtEtaPhiM(gen_particle_daughters_pt.at(idau),
+			     gen_particle_daughters_eta.at(idau),
+			     gen_particle_daughters_phi.at(idau),
+			     gen_particle_daughters_mass.at(idau));
+	    vis_tau += tmp;
+
+	    if (gen_particle_daughters_charge.at(idau) != 0 && gen_particle_daughters_status.at(idau) == 1)
+	      nch_tmp++;
+	    else if (gen_particle_daughters_charge.at(idau) == 0 && gen_particle_daughters_id.at(idau) == 111)
+	      np0_tmp++;
+	    else if (gen_particle_daughters_charge.at(idau) == 0 && gen_particle_daughters_id.at(idau) != 111)
+	      nnh_tmp++;
+	  }
+	}
+
+	
+	std::cout<<"Gen tau particle idx "<<igen<<" pt "<<gen_particle_pt.at(igen)<<" visible pt "<<vis_tau.Pt()<<" status "<<gen_particle_status.at(igen)<<" is hadronic "<<isHadronic<<std::endl;	//std::cout<<"is it hadronic tau? "<<isHadronic<<"which type is it? "<<tau_type<<std::endl;
+
+
+	// visible tau pt > 5 GeV if tau hadronic, if leptonic : tau > 5 GeV
+	if(tau_type==0 && vis_tau.Pt()<5) continue; // hadronic tau
+	if(tau_type!=0 && gen_particle_pt.at(igen)<5) continue; // leptonic tau
+	
+	if(vis_tau.Pt() > 0){
+	  TLorentzVector full_tau;
+	  full_tau.SetPtEtaPhiM(gen_particle_pt.at(igen), gen_particle_eta.at(igen), gen_particle_phi.at(igen), gen_particle_mass.at(igen));
+	  
+	  tau_gen_visible.push_back(vis_tau);
+	  tau_gen.push_back(full_tau);
+	  tau_gen_charge.push_back((gen_particle_id.at(igen) > 0) ? -1 : 1);
+	  tau_gen_type.push_back(tau_type);
+
+	  if (isHadronic) {
+	    tau_gen_nch.push_back(nch_tmp);
+	    tau_gen_np0.push_back(np0_tmp);
+	    tau_gen_nnh.push_back(nnh_tmp);
+	  } else {
+	    // for leptonic taus, push default values
+	    tau_gen_nch.push_back(0);
+	    tau_gen_np0.push_back(0);
+	    tau_gen_nnh.push_back(0);
+	  }
+	}
+
+
+      }
+    }
 
     // matching with gen-leptons (muons/electrons/hadronic taus)
     float minDR = 1000;
@@ -665,10 +782,14 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
     int pos_matched_genmu = -1;
     int pos_matched_genele = -1;
     int pos_matched_tauh = -1;
+    int pos_matched_ditauh = -1; 
     int gentau_decaymode = -1;   
+    int genditau_decaymode = -1;   
     TLorentzVector genLepton4V;
     TLorentzVector genLeptonVis4V;
 
+    skip_jet_ = 0;
+    
     TLorentzVector jet4V;
     jet4V.SetPtEtaPhiM(jet.pt(),jet.eta(),jet.phi(),jet.mass());
 
@@ -696,9 +817,19 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
     }
     
     for(size_t itau = 0; itau < tau_gen_visible.size(); itau++){      
+
+      if(tau_gen_type.at(itau) != 0) continue; // skip if not hadronic tau!
+      
+      if(used_gentaus_->find(itau) != used_gentaus_->end()) {
+	//std::cout<<"skip tau "<<itau<<std::endl;
+	continue; // già usato, skip
+      }
+      
       float dR = tau_gen_visible.at(itau).DeltaR(jet4V); 
-      if(dR < dRCone) nlep_in_cone++;
-      if(dR < dRCone and dR < minDR and tau_gen_visible.at(itau).Pt() >= ptGenTauVisibleMin){
+      std::cout<<"gen visible tau  "<<itau<<" pt "<<tau_gen.at(itau).Pt()<<" visible pt "<<tau_gen_visible.at(itau).Pt()<<" dr with jet "<<dR<<" min dR "<<minDR<<std::endl;
+      std::cout<<"infos jet and tau for dR computation "<<jet.eta()<<" "<<jet.phi()<<" "<<tau_gen_visible.at(itau).Eta()<<" "<<tau_gen_visible.at(itau).Phi()<<std::endl;
+      if(dR < 0.4) nlep_in_cone++;
+      if(dR < 0.4 and dR < minDR and pos_matched_tauh==-1 and tau_gen_visible.at(itau).Pt() >= ptGenTauVisibleMin){
 	pos_matched_genmu  = -1;
 	pos_matched_genele = -1;
 	pos_matched_tauh = itau;
@@ -706,6 +837,43 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
 	gentau_decaymode = 5*(tau_gen_nch.at(itau)-1)+tau_gen_np0.at(itau);
 	genLepton4V = tau_gen.at(itau);
 	genLeptonVis4V = tau_gen_visible.at(itau);
+	used_gentaus_->insert(itau);  // mark this tau as already matched
+	std::cout<<" first tau "<<itau<<" "<<dR<<std::endl;
+      }
+    }
+    // Print all elements
+    std::cout<<"used gen taus "<<std::endl;
+    for (const auto& elem : *used_gentaus_) {
+      std::cout << elem << " ";
+    }
+    std::cout << "end "<<std::endl;
+
+    // di-tau matching
+
+    //std::cout<<"how many taus? "<<tau_gen_visible.size()<<std::endl;
+    for(size_t itau = 0; itau < tau_gen_visible.size(); itau++){
+
+      std::cout<<"other taus beofre filter  "<<itau<<" pt "<<tau_gen.at(itau).Pt()<<std::endl;
+      
+      if(used_gentaus_->find(itau) != used_gentaus_->end()) continue; // già usato, skip
+
+      float dR = tau_gen_visible.at(itau).DeltaR(jet4V);
+      std::cout<<"other taus  "<<itau<<" pt "<<tau_gen.at(itau).Pt()<<" visible pt "<<tau_gen_visible.at(itau).Pt()<<" dr with jet "<<dR<<" min dR "<<minDR<<" is hadronic? "<<tau_gen_type.at(itau)<<std::endl;
+      if(dR < 0.4) nlep_in_cone++;
+      if(pos_matched_tauh != -1 and pos_matched_ditauh == -1 and dR!=minDR  and dR < 0.4){ // this is the second tau to be matched with the jet
+	std::cout<<" second tau "<<itau<<" "<<dR<<std::endl;
+	//std::cout<<" before pos_matched_ditauh = "<<pos_matched_ditauh<<std::endl;
+
+	pos_matched_ditauh = itau; // the other tau is already saved
+	//std::cout<<" then pos_matched_ditauh = "<<pos_matched_ditauh<<std::endl;
+	used_gentaus_->insert(itau);  // mark this tau as matched
+	genditau_decaymode = tau_gen_type.at(itau);
+
+      }
+      else if (pos_matched_ditauh != -1 and dR!=minDR and dR < 0.4){
+	std::cout<<" Too many taus, so jet skipped "<<std::endl;
+	skip_jet_ = 1;
+	used_gentaus_->insert(itau);  // mark this tau as matched
       }
     }
     
@@ -840,7 +1008,9 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
 
     // often we have way to many gluons that we do not need. This randomply reduces the gluons
     if (gluonReduction_>0 && jet.partonFlavour()==21)
-        if(TRandom_.Uniform()>gluonReduction_) returnval=false;
+      if(TRandom_.Uniform()>gluonReduction_) {
+	returnval=false;
+	std::cout<<"Jet removed for gluon reduction "<<returnval<<std::endl;}
 
     //branch fills
     /*for(auto& entry : discriminators_) {
@@ -869,7 +1039,7 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
     isB_=0; isGBB_=0; isBB_=0; isC_=0; isGCC_=0; isCC_=0; isU_=0; isD_=0; isMU_=0; isELE_=0;
     isS_=0; isG_=0, isPU_=0, isLeptonicB_=0, isLeptonicB_C_=0, isUndefined_=0;
     isTaup1h0p_=0, isTaup1h1p_=0, isTaup1h2p_=0, isTaup3h0p_=0, isTaup3h1p_=0; 
-    isTaum1h0p_=0, isTaum1h1p_=0, isTaum1h2p_=0, isTaum3h0p_=0, isTaum3h1p_=0; 
+    isTaum1h0p_=0, isTaum1h1p_=0, isTaum1h2p_=0, isTaum3h0p_=0, isTaum3h1p_=0; isDiTauh_=0; isDiTaumu_=0; isDiTaue_=0;
     auto muIds = deep_ntuples::jet_muonsIds(jet,*muonsHandle);
     auto elecIds = deep_ntuples::jet_electronsIds(jet,*electronsHandle);
 
@@ -922,7 +1092,7 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
 
     //// Note that jets with gluon->bb (cc) and x->bb (cc) are in the same categories
     if(true){
-      switch(deep_ntuples::jet_flavour(jet, gToBB, gToCC, neutrinosLepB, neutrinosLepB_C, alltaus_, pos_matched_genmu, pos_matched_genele, pos_matched_tauh, gentau_decaymode, tau_gen_charge)) {
+      switch(deep_ntuples::jet_flavour(jet, gToBB, gToCC, neutrinosLepB, neutrinosLepB_C, alltaus_, pos_matched_genmu, pos_matched_genele, pos_matched_tauh, pos_matched_ditauh, gentau_decaymode, genditau_decaymode, tau_gen_charge)) {
         case deep_ntuples::JetFlavor::MU:  isMU_=1; break;
         case deep_ntuples::JetFlavor::ELE:  isELE_=1; break;
         case deep_ntuples::JetFlavor::TAUP1H0P:  isTaup1h0p_=1; break;
@@ -935,6 +1105,9 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
         case deep_ntuples::JetFlavor::TAUM1H2P:  isTaum1h2p_=1; break;
         case deep_ntuples::JetFlavor::TAUM3H0P:  isTaum3h0p_=1; break;
         case deep_ntuples::JetFlavor::TAUM3H1P:  isTaum3h1p_=1; break;
+        case deep_ntuples::JetFlavor::DITAUH:  isDiTauh_=1; break;
+        case deep_ntuples::JetFlavor::DITAUMU:  isDiTaumu_=1; break;
+        case deep_ntuples::JetFlavor::DITAUE:  isDiTaue_=1; break;
         case deep_ntuples::JetFlavor::B:  isB_=1; break;
         case deep_ntuples::JetFlavor::LeptonicB: isLeptonicB_=1; break;
         case deep_ntuples::JetFlavor::LeptonicB_C: isLeptonicB_C_=1; break;
@@ -950,17 +1123,29 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
         case deep_ntuples::JetFlavor::D: isD_=1; break;
         default : isUndefined_=1; break;
         }
+
+      if (isTaup1h0p_ || isTaup1h1p_ || isTaup1h2p_ || isTaup3h0p_ || isTaup3h1p_ ||
+	  isTaum1h0p_ || isTaum1h1p_ || isTaum1h2p_ || isTaum3h0p_ || isTaum3h1p_) {
+	std::cout << "This jet is a single-tau!" << std::endl;
+      }
+      if (isDiTauh_ || isDiTaumu_ || isDiTaue_) {
+	std::cout << "This jet is a di-tau! skip jet ? " <<skip_jet_<<std::endl;
+      }
+
+      //std::cout<<"isDiTauh "<<isDiTauh_<<" isDiTaumu "<<isDiTaumu_<<" isDiTaue "<<isDiTaue_<<std::endl;
     }
-    if (SkipPU_ && isPU_) returnval=false; 
+    if (SkipPU_ && isPU_) {
+      returnval=false;
+      std::cout<<"Jet skipped for PU"<<returnval<<std::endl;}
        
-  //  std::cout<<"B "<<isB_<<" GBB "<<isGBB_<<" BB "<<isBB_<<" C "<<isC_<<" GCC "<<isGCC_<<" CC "<<isCC_<<" U "<< isU_<<" D "<<isD_<<" NU "<<isMU_<<" ELE "<<isELE_<<endl;
+    //std::cout<<"jet pt after1 "<<jet.pt()<<"  "<<jet_pt_<<isTaup1h0p_<<"  "<<isBB_<<" C "<<isC_<<" GCC "<<isGCC_<<" CC "<<isCC_<<" U "<< isU_<<" D "<<isD_<<" NU "<<isMU_<<" ELE "<<isELE_<<endl;
     //truth labeling with fallback to physics definition for light/gluon/undefined of standard flavor definition
     //// Note that jets with gluon->bb (cc) and x->bb (cc) are in the same categories
     isPhysB_=0; isPhysBB_=0; isPhysGBB_=0; isPhysC_=0; isPhysCC_=0;
     isPhysGCC_=0; isPhysD_=0; isPhysU_=0; isPhysS_=0; isPhysG_=0, isPhysLeptonicB_=0, isPhysLeptonicB_C_=0, isPhysUndefined_=0;
     isPhysTau_=0, isPhysPU_=0;
     if(true){
-      switch(deep_ntuples::jet_flavour(jet, gToBB, gToCC, neutrinosLepB, neutrinosLepB_C, alltaus_, pos_matched_genmu, pos_matched_genele, pos_matched_tauh, gentau_decaymode, tau_gen_charge, true)) {
+      switch(deep_ntuples::jet_flavour(jet, gToBB, gToCC, neutrinosLepB, neutrinosLepB_C, alltaus_, pos_matched_genmu, pos_matched_genele, pos_matched_tauh, pos_matched_ditauh, gentau_decaymode, genditau_decaymode, tau_gen_charge, true)) {
         case deep_ntuples::JetFlavor::S:  isPhysS_=1; break;
         case deep_ntuples::JetFlavor::U: isPhysU_=1; break;
         case deep_ntuples::JetFlavor::D: isPhysD_=1; break;
@@ -978,6 +1163,7 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
         default : isPhysUndefined_=1; break;
         }
     }
+    //std::cout<<"jet pt after2 "<<jet.pt()<<" "<<jet_pt_<<std::endl;;
 
     //2nd matching
     constituent_pt_.clear();
@@ -1104,7 +1290,9 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
 
 
 
-    if(isUndefined_) returnval=false;
+    if(isUndefined_) {
+      returnval=false;
+      std::cout<<"jet is undefined "<<returnval<<std::endl;}
     pat::JetCollection h;
 
     jet_pt_ = jet.pt();
@@ -1225,6 +1413,7 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
 	reco::GenJetRef genjetDuplication = (*genJetMatchAllowDuplicates)[patJetRef];
         if (genjetDuplication.isNonnull() && genjetDuplication.isAvailable()) {
 	  returnval=false;
+	  std::cout<<"Jet duplication "<<returnval<<std::endl;
         }
 
     }
@@ -1236,6 +1425,7 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
 	float deltaR_match = reco::deltaR(jet, *jet.genJet());
 	if( deltaR_match > 0.2){
 	  returnval = false;
+	  std::cout<<"Jet gen match "<<returnval<<std::endl;
 	}
 
         const edm::RefToBase<pat::Jet> patJetRef = coll->refAt(jetidx);
@@ -1267,5 +1457,7 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
     y_axis2_  =  std::get<5>(qgtuple);
     y_pt_dr_log_=std::get<6>(qgtuple);
 
+    std::cout<<"Are we saving the jet? "<<returnval<<std::endl;
+    
     return returnval;
 }

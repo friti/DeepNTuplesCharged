@@ -13,7 +13,7 @@ options.register('maxEvents', 50001,VarParsing.VarParsing.multiplicity.singleton
 options.register('skipEvents', 0, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "skip N events")
 options.register('job', 0, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "job number")
 options.register('nJobs', 1, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "total jobs")
-options.register('reportEvery', 1000, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "report every")
+options.register('reportEvery', 1, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "report every")
 options.register('gluonReduction', 0.0, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.float, "gluon reduction")
 options.register('selectJets', True, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.bool, "select jets with good gen match")
 options.register('phase2', False, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.bool, "apply jet selection for phase 2. Currently sets JetEtaMax to 3.0 and picks slimmedJetsPuppi as jet collection.")
@@ -81,7 +81,7 @@ if options.nJobs > 1:
     print ("running over these files:")
     print (process.source.fileNames)
 
-process.source.fileNames = [ 'file:/eos/cms/store/cmst3/group/softJets/gkaratha/chain_m70_dm20_cfgRun24_133X_Run2024_test_10172024/Mini/chain_m70_dm20_'+str(i)+'_step5_mini.root' for i in range(1,50)]
+process.source.fileNames = [ 'file:/eos/cms//store/cmst3/group/softJets/common/signal_samples_140X/cascade_m100_31_cfgRun24_140X_Run2024_test_03062025/Mini/job_100_step4.root']
 
 process.source.skipEvents = cms.untracked.uint32(options.skipEvents)
 process.maxEvents  = cms.untracked.PSet( 
@@ -208,7 +208,8 @@ process.patJetsAK4PuppiRecluster.getJetMCFlavour = True
 getattr(process, "patJetFlavourAssociationAK4PuppiRecluster").weights = cms.InputTag("puppi")
 
 if usePuppi:
-    jet_collection = 'patJetsAK4PuppiRecluster'
+    #jet_collection = 'patJetsAK4PuppiRecluster'
+    jet_collection = 'slimmedJetsPuppi'
 else:
     jet_collection = 'slimmedJets'
 
@@ -311,7 +312,7 @@ process.TFileService = cms.Service("TFileService",
                                    fileName = cms.string(outFileName))
 
 # DeepNtuplizer
-process.load("DeepNTuples.DeepNtuplizer.DeepNtuplizer_cfi")
+process.load("DeepNTuples.DeepNtuplizer.BareDeepNtuplizer_cfi")
 process.deepntuplizer.jets = cms.InputTag('selectedUpdatedPatJetsDeepFlavour')
 process.deepntuplizer.bDiscriminators = bTagDiscriminators 
 process.deepntuplizer.bDiscriminators.append('pfCombinedMVAV2BJetTags')

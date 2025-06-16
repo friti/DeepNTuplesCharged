@@ -39,8 +39,11 @@ public:
     virtual void readSetup(const edm::EventSetup& iSetup){}
     //use either of these functions
 
-    virtual bool fillBranches(const pat::Jet &, const size_t& jetidx, const  edm::View<pat::Jet> * coll=0)=0;
+  virtual bool fillBranches(const pat::Jet &, const size_t& jetidx,  const  edm::View<pat::Jet> * coll=0)=0;
 
+  virtual void setUsedGenTaus(std::set<int>* used_gentaus) { /* do nothing */ }
+  virtual std::set<int>* getUsedGenTaus() const { return nullptr; }
+  
     void setPrimaryVertices(const reco::VertexCollection* v){
         vertices_=v;
     }

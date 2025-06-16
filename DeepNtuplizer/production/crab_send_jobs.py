@@ -1,0 +1,107 @@
+import datetime
+from CRABClient.UserUtilities import config
+from CRABAPI.RawCommand import crabCommand
+import subprocess
+import os
+
+def list_of_files(path):
+    if not path.endswith('/'):
+        path += '/'
+    files = subprocess.check_output(["ls", "/eos/cms/"+path]).splitlines()
+    outfiles = []
+    for line in files:
+        fname = line.decode()
+        if "root" in fname:
+            outfiles.append(path + fname)
+    return outfiles
+
+def submit_crab_job(dataset_path, base_workarea, folder_name, output_tag):
+    crab_config = config()
+
+    # General
+    crab_config.General.transferOutputs = True
+    crab_config.General.workArea = os.path.join(base_workarea, folder_name)
+    crab_config.General.requestName = output_tag
+
+    # JobType
+    crab_config.JobType.pluginName = 'Analysis'
+    crab_config.JobType.psetName = 'DeepNtuplizer_pfc2.py'
+    crab_config.JobType.allowUndistributedCMSSW = True
+    crab_config.JobType.maxMemoryMB = 3500
+    crab_config.JobType.inputFiles = ["../python/QGL_cmssw8020_v2.db"]
+
+    # Data
+    crab_config.Data.splitting = 'FileBased'
+    crab_config.Data.unitsPerJob = 20
+    crab_config.Data.inputDBS = 'global'
+    crab_config.Data.publication = False
+    crab_config.Data.outputDatasetTag = output_tag
+    crab_config.Data.outLFNDirBase = '/store/group/cmst3/group/softJets/friti/deepntuplizer/ntuples_v2/'
+
+    # Input files
+    input_files = list_of_files(dataset_path)
+    if len(input_files) == 0:
+        print(f"WARNING: No root files found for dataset {dataset_path}")
+    crab_config.Data.userInputFiles = input_files
+
+    # Site
+    crab_config.Site.storageSite = 'T2_CH_CERN'
+
+    # Print info before submission
+    print(f"Submitting CRAB job for dataset: {dataset_path}")
+    print(f"WorkArea (CRAB project folder): {crab_config.General.workArea}")
+    print(f"RequestName (CRAB task name): {crab_config.General.requestName}")
+
+    output_folder = os.path.join(crab_config.Data.outLFNDirBase, output_tag)
+    print(f"Expected output folder on EOS: {output_folder}")
+
+    crabCommand('submit', config=crab_config)
+
+    return crab_config.General.workArea  # return the workarea for status check
+
+# Get today's date string
+today_str = datetime.datetime.now().strftime("%Y-%m-%d")
+base_workarea = os.path.join("crab_projects", today_str)
+
+datasets = [
+    {
+        'path': '/store/cmst3/group/softJets/common/signal_samples_140X/chain_m70_dm20_cfgRun24_140X_Run2024_test_03062025/Mini/',
+        'folder': 'chain_m70_dm20',
+        'tag': 'PUPPI_Signal_chain_m70_dm20'
+    },
+    {
+        'path': '/store/cmst3/group/softJets/common/signal_samples_140X/chain_m70_dm8_cfgRun24_140X_Run2024_test_03062025/Mini/',
+        'folder': 'chain_m70_dm8',
+        'tag': 'PUPPI_Signal_chain_m70_dm8'
+    },
+    {
+        'path': '/store/cmst3/group/softJets/common/signal_samples_140X/cascade_m100_31_cfgRun24_140X_Run2024_test_03062025/Mini/',
+        'folder': 'cascade_m100_31',
+        'tag': 'PUPPI_Signal_cascade_m100_31'
+    },
+    {
+        'path': '/store/cmst3/group/softJets/common/signal_samples_140X/cascade_m220_67_20_cfgRun24_140X_Run2024_test_03062025/Mini/',
+        'folder': 'cascade_m220_67_20',
+        'tag': 'PUPPI_Signal_cascade_m220_67_20'
+    },
+]
+
+workareas = []
+for ds in datasets:
+    workarea = submit_crab_job(ds['path'], base_workarea, ds['folder'], ds['tag'])
+    workareas.append(workarea)
+
+# Create a status-checking bash script
+script_filename = "check_crab_jobs.sh"
+with open(script_filename, "w") as f:
+    f.write("#!/bin/bash\n\n")
+    f.write("# Script to check status of all submitted CRAB jobs\n\n")
+    for wa, ds in zip(workareas, datasets):
+        crab_project_dir = f"{wa}/crab_{ds['tag']}"
+        f.write(f"echo '=== Status for {crab_project_dir} ==='\n")
+        f.write(f"crab status -d {crab_project_dir}\n\n")
+
+os.chmod(script_filename, 0o755)  # make it executable
+
+print(f"\nCreated status checking script: {script_filename}")
+print(f"Run it with: ./{script_filename}")

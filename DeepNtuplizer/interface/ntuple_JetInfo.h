@@ -31,7 +31,10 @@ public:
 
     //use either of these functions
 
-    bool fillBranches(const pat::Jet &, const size_t& jetidx, const  edm::View<pat::Jet> * coll=0);
+  bool fillBranches(const pat::Jet &, const size_t& jetidx, const  edm::View<pat::Jet> * coll=0);
+
+  void setUsedGenTaus(std::set<int>* used) { used_gentaus_ = used; }
+     std::set<int>* getUsedGenTaus() const { return used_gentaus_; }
 
     void setAxis2Token(edm::EDGetTokenT<edm::ValueMap<float> > axis2Token) {
         axis2Token_ = axis2Token;
@@ -99,12 +102,16 @@ public:
     }
 
     //private:
-
+  // to check already matched  gen taus
+  std::set<int>* used_gentaus_ = nullptr;
+  
     double                    jetPtMin_;
     double                    jetPtMax_;
     double                    jetAbsEtaMin_;
     double                    jetAbsEtaMax_;
     bool                      SkipPU_;
+
+  int                      skip_jet_;
 
     //Quark gluon likelihood
     edm::EDGetTokenT<edm::ValueMap<float>>   qglToken_;
@@ -156,6 +163,7 @@ public:
     std::vector<float>  gen_particle_phi;
     std::vector<float>  gen_particle_mass;
     std::vector<int>    gen_particle_id;
+    std::vector<int>    gen_particle_mother_id;
     std::vector<unsigned int>  gen_particle_status;
     std::vector<int>    gen_particle_daughters_id;
     std::vector<unsigned int> gen_particle_daughters_igen;
@@ -194,6 +202,7 @@ public:
     std::vector<TLorentzVector> genElectronsFromResonance4V_;
     std::vector<TLorentzVector> tau_gen_visible_;
     std::vector<TLorentzVector> tau_gen_;
+    std::vector<TLorentzVector> tau_gen_type_;
     std::vector<int> tau_gen_charge_;
     std::vector<unsigned int> tau_gen_nch_;
     std::vector<unsigned int> tau_gen_np0_;
@@ -255,6 +264,9 @@ public:
     int isTaum1h2p_;
     int isTaum3h0p_;
     int isTaum3h1p_;
+    int isDiTauh_;
+    int isDiTaumu_;
+    int isDiTaue_;
 
     //truth labeling with fallback to physics definition for light/gluon/undefined of standard flavor definition
     int isPhysB_;

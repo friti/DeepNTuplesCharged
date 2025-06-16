@@ -26,7 +26,7 @@ templ_sub += "config = Configuration()\n"
 templ_sub += "config.section_('General')\n"
 templ_sub +="config.General.transferOutputs = True\n"
 ###### name local
-templ_sub +="config.General.workArea = 'crab_projects/PFC_Signal_cascade_m220_67_13_04_25'\n"
+templ_sub +="config.General.workArea = 'crab_projects/PUPPI_Signal_cascade_m100_31'\n"
 templ_sub +="config.section_('JobType')\n"
 templ_sub +="config.JobType.pluginName = 'Analysis'\n"
 ####### Here put the code
@@ -41,18 +41,18 @@ templ_sub +="config.Data.unitsPerJob = 20\n"
 templ_sub +="config.Data.inputDBS = 'global'\n"
 templ_sub +="config.Data.publication = False\n"
 ###### Name in eos
-templ_sub +="config.Data.outputDatasetTag = 'PFC_Signal_cascade_m220_67_13_04_25'\n"
+templ_sub +="config.Data.outputDatasetTag = 'PUPPI_Signal_cascade_m100_31'\n"
 templ_sub +="config.section_('Site')\n"
 templ_sub +="config.Site.storageSite = 'T2_CH_CERN'\n"
 ##### output folder
-templ_sub +="config.Data.outLFNDirBase = '/store/group/cmst3/group/softJets/gkaratha/SoftMultiJet/DeepNtuples_v3/'\n"
+templ_sub +="config.Data.outLFNDirBase = '/store/group/cmst3/group/softJets/friti/deepntuplizer/ntuples_v2/'\n"
 ##### input
 ## chain dm20
-#templ_sub +="config.Data.userInputFiles = ["+list_of_files('/store/cmst3/group/softJets/common/signal_samples_140X/chain_m70_dm20_cfgRun24_140X_Run2024_test_03062025/Mini/')+"]\n"
+templ_sub +="config.Data.userInputFiles = ["+list_of_files('/store/cmst3/group/softJets/common/signal_samples_140X/chain_m70_dm20_cfgRun24_140X_Run2024_test_03062025/Mini/')+"]\n"
 ## chain dm8
-#templ_sub +="config.Data.userInputFiles = ["+list_of_files('/store/cmst3/group/softJets/common/signal_samples_140X/chain_m70_dm8_cfgRun24_140X_Run2024_test_03062025/Mini/')+"]\n"
+templ_sub +="config.Data.userInputFiles = ["+list_of_files('/store/cmst3/group/softJets/common/signal_samples_140X/chain_m70_dm8_cfgRun24_140X_Run2024_test_03062025/Mini/')+"]\n"
 ## cascade m100
-#templ_sub +="config.Data.userInputFiles = ["+list_of_files('/store/cmst3/group/softJets/common/signal_samples_140X/cascade_m100_31_cfgRun24_140X_Run2024_test_03062025/Mini/')+"]\n"
+templ_sub +="config.Data.userInputFiles = ["+list_of_files('/store/cmst3/group/softJets/common/signal_samples_140X/cascade_m100_31_cfgRun24_140X_Run2024_test_03062025/Mini/')+"]\n"
 ## cascade m220
 templ_sub +="config.Data.userInputFiles = ["+list_of_files('/store/cmst3/group/softJets/common/signal_samples_140X/cascade_m220_67_20_cfgRun24_140X_Run2024_test_03062025/Mini/')+"]\n"
 
