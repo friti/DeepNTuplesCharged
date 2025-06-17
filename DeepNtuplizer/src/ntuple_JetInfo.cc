@@ -871,6 +871,7 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
 
       float dR = tau_gen_visible.at(itau).DeltaR(jet4V);
       std::cout<<"other taus  "<<itau<<" pt "<<tau_gen.at(itau).Pt()<<" visible pt "<<tau_gen_visible.at(itau).Pt()<<" dr with jet "<<dR<<" min dR "<<minDR<<" is hadronic? "<<tau_gen_type.at(itau)<<std::endl;
+      std::cout<<"infos jet and tau for dR computation "<<jet.eta()<<" "<<jet.phi()<<" "<<tau_gen_visible.at(itau).Eta()<<" "<<tau_gen_visible.at(itau).Phi()<<std::endl;
       if(dR < 0.4) nlep_in_cone++;
       if(pos_matched_tauh != -1 and pos_matched_ditauh == -1 and dR!=minDR  and dR < 0.4){ // this is the second tau to be matched with the jet
 	std::cout<<" second tau "<<itau<<" "<<dR<<std::endl;

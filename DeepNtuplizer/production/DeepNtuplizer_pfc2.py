@@ -17,7 +17,7 @@ options.register('reportEvery', 1, VarParsing.VarParsing.multiplicity.singleton,
 options.register('gluonReduction', 0.0, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.float, "gluon reduction")
 options.register('selectJets', True, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.bool, "select jets with good gen match")
 options.register('puppi', True, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.bool, "use puppi jets")
-options.register('chs', True, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.bool, "use CHS jets")
+options.register('chs', False, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.bool, "use CHS jets")
 
 import os
 release=os.environ['CMSSW_VERSION'][6:]
@@ -35,11 +35,12 @@ if hasattr(sys, "argv"):
     options.parseArguments()
 
 usePuppi = False
-useCHS = True
+useCHS = False
 if options.puppi and options.chs:
    print("cannot run with 2 types of jets")
    exit
 if options.puppi:
+    print("Running puppi")
     usePuppi = True
     options.outputFile+="_puppi"
 elif options.chs:
@@ -88,7 +89,9 @@ if options.nJobs > 1:
     print (process.source.fileNames)
 
 #process.source.fileNames =  cms.untracked.vstring([ 'file:/eos/cms/store/cmst3/group/softJets/common/signal_samples_140X/cascade_m100_31_cfgRun24_140X_Run2024_test_03062025/Mini/job_0_step4.root','file:/eos/cms/store/cmst3/group/softJets/common/signal_samples_140X/cascade_m100_31_cfgRun24_140X_Run2024_test_03062025/Mini/job_1000_step4.root','file:/eos/cms/store/cmst3/group/softJets/common/signal_samples_140X/cascade_m100_31_cfgRun24_140X_Run2024_test_03062025/Mini/job_1001_step4.root', 'file:/eos/cms/store/cmst3/group/softJets/common/signal_samples_140X/cascade_m100_31_cfgRun24_140X_Run2024_test_03062025/Mini/job_1002_step4.root',]) 
-#process.source.fileNames =  cms.untracked.vstring([ 'file:/eos/cms/store/cmst3/group/softJets/common/signal_samples_140X/cascade_m100_31_cfgRun24_140X_Run2024_test_03062025/Mini/job_1000_step4.root']) 
+process.source.fileNames =  cms.untracked.vstring([ 'file:/eos/cms/store/cmst3/group/softJets/common/signal_samples_140X/cascade_m100_31_cfgRun24_140X_Run2024_test_03062025/Mini/job_0_step4.root']) 
+
+'''
 process.source.fileNames =  cms.untracked.vstring([ 'file:/eos/cms/store/cmst3/group/softJets/common/signal_samples_140X/cascade_m100_31_cfgRun24_140X_Run2024_test_03062025/Mini/job_0_step4.root',
 'file:/eos/cms/store/cmst3/group/softJets/common/signal_samples_140X/cascade_m100_31_cfgRun24_140X_Run2024_test_03062025/Mini/job_1000_step4.root',
 'file:/eos/cms/store/cmst3/group/softJets/common/signal_samples_140X/cascade_m100_31_cfgRun24_140X_Run2024_test_03062025/Mini/job_1001_step4.root',
@@ -151,7 +154,7 @@ process.source.fileNames =  cms.untracked.vstring([ 'file:/eos/cms/store/cmst3/g
 'file:/eos/cms/store/cmst3/group/softJets/common/signal_samples_140X/cascade_m100_31_cfgRun24_140X_Run2024_test_03062025/Mini/job_1053_step4.root',
 ]) 
 #'file:/eos/cms/store/cmst3/group/softJets/gkaratha/chain_m70_dm20_cfgRun24_133X_Run2024_test_10172024/Mini/chain_m70_dm20_'+str(i)+'_step5_mini.root' for i in range(1,50)]
-
+'''
 process.source.skipEvents = cms.untracked.uint32(options.skipEvents)
 process.maxEvents  = cms.untracked.PSet( 
     input = cms.untracked.int32 (options.maxEvents) 
@@ -303,6 +306,7 @@ if (not usePuppi) and (not useCHS):
 
 
 elif (usePuppi) and (not useCHS):
+   print("using puppi jets")
    jetCorrectionsAK4 = ('AK4PFPuppi', ['L1FastJet', 'L2Relative', 'L3Absolute'], 'None')
    from RecoJets.JetProducers.ak4PFJets_cfi import ak4PFJetsPuppi
    addProcessAndTask(process, "ak4PFJetsPuppiRecluster", ak4PFJetsPuppi.clone(
