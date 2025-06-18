@@ -265,11 +265,13 @@ public:
     int isTaup1h2p_;
     int isTaup3h0p_;
     int isTaup3h1p_;
+    int isTaupOther_;
     int isTaum1h0p_;
     int isTaum1h1p_;
     int isTaum1h2p_;
     int isTaum3h0p_;
     int isTaum3h1p_;
+    int isTaumOther_;
     int isDiTauh_;
     int isDiTaumu_;
     int isDiTaue_;

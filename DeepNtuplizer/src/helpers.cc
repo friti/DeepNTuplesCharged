@@ -96,7 +96,7 @@ JetFlavor jet_flavour(const pat::Jet& jet,
       jet_ditaudecaymode_b = -1;
     }
 
-    //std::cout<<"pos_matched_ditauh "<<pos_matched_ditauh<<" jet_ditauflav_b "<<jet_ditauflav_b<<std::endl;
+    //std::cout<<" pos_matched_tauh "<<pos_matched_tauh<<" pos_matched_ditauh "<<pos_matched_ditauh<<" jet_taudecaymode_b "<<jet_taudecaymode_b<<" jet_ditaudecaymode_b "<<jet_ditaudecaymode_b<<std::endl;
 
     if((jet_muflav_b==1) & (jet_elflav_b==0) & (jet_tauflav_b==0)){return JetFlavor::MU;}
     if((jet_muflav_b==0) & (jet_elflav_b==1) & (jet_tauflav_b==0)){return JetFlavor::ELE;}
@@ -107,15 +107,18 @@ JetFlavor jet_flavour(const pat::Jet& jet,
     if((jet_muflav_b==0) & (jet_elflav_b==0) & (jet_tauflav_b==1) & (jet_ditauflav_b==0) & (jet_taudecaymode_b==2) & (jet_taucharge_b>0)){return JetFlavor::TAUP1H2P;}
     if((jet_muflav_b==0) & (jet_elflav_b==0) & (jet_tauflav_b==1) & (jet_ditauflav_b==0) & (jet_taudecaymode_b==10) & (jet_taucharge_b>0)){return JetFlavor::TAUP3H0P;}
     if((jet_muflav_b==0) & (jet_elflav_b==0) & (jet_tauflav_b==1) & (jet_ditauflav_b==0) & (jet_taudecaymode_b==11) & (jet_taucharge_b>0)){return JetFlavor::TAUP3H1P;}
+    if((jet_muflav_b==0) & (jet_elflav_b==0) & (jet_tauflav_b==1) & (jet_ditauflav_b==0) & (jet_taucharge_b>0)){return JetFlavor::TAUPOTHER;}
+
 
     if((jet_muflav_b==0) & (jet_elflav_b==0) & (jet_tauflav_b==1) & (jet_ditauflav_b==0) & (jet_taudecaymode_b==0) & (jet_taucharge_b<0)){return JetFlavor::TAUM1H0P;}
     if((jet_muflav_b==0) & (jet_elflav_b==0) & (jet_tauflav_b==1) & (jet_ditauflav_b==0) & (jet_taudecaymode_b==1) & (jet_taucharge_b<0)){return JetFlavor::TAUM1H1P;}
     if((jet_muflav_b==0) & (jet_elflav_b==0) & (jet_tauflav_b==1) & (jet_ditauflav_b==0) & (jet_taudecaymode_b==2) & (jet_taucharge_b<0)){return JetFlavor::TAUM1H2P;}
     if((jet_muflav_b==0) & (jet_elflav_b==0) & (jet_tauflav_b==1) & (jet_ditauflav_b==0) & (jet_taudecaymode_b==10) & (jet_taucharge_b<0)){return JetFlavor::TAUM3H0P;}
     if((jet_muflav_b==0) & (jet_elflav_b==0) & (jet_tauflav_b==1) & (jet_ditauflav_b==0) & (jet_taudecaymode_b==11) & (jet_taucharge_b<0)){return JetFlavor::TAUM3H1P;}
+    if((jet_muflav_b==0) & (jet_elflav_b==0) & (jet_tauflav_b==1) & (jet_ditauflav_b==0) & (jet_taucharge_b<0)){return JetFlavor::TAUMOTHER;}
 
     // di-tau (only one category for now)
-    //std::cout<<"jet_muflav_b "<<jet_muflav_b<<" jet_elflav_b "<<jet_elflav_b<<" jet_tauflav_b "<<jet_tauflav_b<<" jet_ditauflav_b  "<<jet_ditauflav_b<<std::endl;
+
     if((jet_muflav_b==0) & (jet_elflav_b==0) & (jet_tauflav_b==1) & (jet_ditauflav_b==1) & (jet_ditaudecaymode_b==0) ){return JetFlavor::DITAUH;}
     if((jet_muflav_b==0) & (jet_elflav_b==0) & (jet_tauflav_b==1) & (jet_ditauflav_b==1) & (jet_ditaudecaymode_b==1) ){return JetFlavor::DITAUMU;}
     if((jet_muflav_b==0) & (jet_elflav_b==0) & (jet_tauflav_b==1) & (jet_ditauflav_b==1) & (jet_ditaudecaymode_b==2) ){return JetFlavor::DITAUE;}
