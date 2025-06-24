@@ -20,9 +20,10 @@ namespace deep_ntuples {
 			  int pos_matched_genmu,
 			  int pos_matched_genele,
 			  int pos_matched_tauh,
-			  int pos_matched_ditauh,
+			  int pos_matched_tauhtauh,
+			  int pos_matched_tauhtaumu,
+			  int pos_matched_tauhtaue,
 			  int gentau_decaymode,
-			  int genditau_decaymode,
 			  const std::vector<int> tau_gen_charge,
 			  bool usePhysForLightAndUndefined=false);
     std::vector<std::size_t> jet_muonsIds(const pat::Jet& jet, const std::vector<pat::Muon>& event_muons); 

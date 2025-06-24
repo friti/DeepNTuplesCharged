@@ -173,6 +173,7 @@ BareDeepNtuplizer::BareDeepNtuplizer(const edm::ParameterSet& iConfig):
 
   addModule(jetinfo, "jetinfo");
 
+  
   ntuple_pfCands * pfcands = new ntuple_pfCands();
   pfcands->setJetRadius(jetR);
   pfcands->setTrackBuilderToken(
@@ -261,7 +262,6 @@ BareDeepNtuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
     m->readEvent(iEvent);
   }
 
-  std::set<int> used_gentaus;
 
   std::vector<size_t> indices(jets->size());
   for(size_t i=0;i<jets->size();i++)
@@ -269,39 +269,32 @@ BareDeepNtuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
 
   if(applySelection_)
     std::random_shuffle (indices.begin(),indices.end());
-  
 
   edm::View<pat::Jet>::const_iterator jetIter;
   // loop over the jets
+
   for(size_t j=0;j<indices.size();j++){
     njetstotal_++;
     size_t jetidx=indices.at(j);
     jetIter = jets->begin()+jetidx;
     const pat::Jet& jet = *jetIter;
+
     if(jet.genJet())
       njetswithgenjet_++;
 
     bool writejet=true;
     size_t idx = 0;
     for(auto& m:modules_){
-      m->setUsedGenTaus(&used_gentaus);
-      
+
       if(! m->fillBranches(jet, jetidx, jets.product())){
 	writejet=false;
 	if(applySelection_) break;
       }
-
-      // Debug print the used_gentaus contents
-      //std::cout << "After module " << idx << ", used_gentaus contains: ";
-      //for(const auto& tauIdx : used_gentaus) {
-      //std::cout << tauIdx << " ";
-      //}
-      //std::cout << std::endl;
       
       idx++;
     }
    if( (writejet && applySelection_) || !applySelection_ ){
-      tree_->Fill();
+     tree_->Fill();
       njetsselected_++;
       if(!jet.genJet())
 	njetsselected_nogen_++;

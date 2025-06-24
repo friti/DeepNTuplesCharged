@@ -36,13 +36,17 @@ def submit_crab_job(dataset_path, base_workarea, folder_name, output_tag):
     crab_config.Data.inputDBS = 'global'
     crab_config.Data.publication = False
     crab_config.Data.outputDatasetTag = output_tag
-    crab_config.Data.outLFNDirBase = '/store/group/cmst3/group/softJets/friti/deepntuplizer/ntuples_v2/'
+    crab_config.Data.outLFNDirBase = '/store/group/cmst3/group/bpark/friti/deepntuplizer/ntuples_June25/'
 
+    '''
     # Input files
     input_files = list_of_files(dataset_path)
     if len(input_files) == 0:
         print(f"WARNING: No root files found for dataset {dataset_path}")
     crab_config.Data.userInputFiles = input_files
+    '''
+
+    crab_config.Data.inputDataset = dataset_path
 
     # Site
     crab_config.Site.storageSite = 'T2_CH_CERN'
@@ -65,24 +69,14 @@ base_workarea = os.path.join("crab_projects", today_str)
 
 datasets = [
     {
-        'path': '/store/cmst3/group/softJets/common/signal_samples_140X/chain_m70_dm20_cfgRun24_140X_Run2024_test_03062025/Mini/',
-        'folder': 'chain_m70_dm20',
-        'tag': 'PUPPI_Signal_chain_m70_dm20'
+        'path': '/ttbarToBsToTauTau_BsFilter_TauTauFilter_TuneCP5_13TeV-pythia8-evtgen/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM',
+        'folder': 'bstautau_signal',
+        'tag': 'PUPPI_Signal_bstautau'
     },
     {
-        'path': '/store/cmst3/group/softJets/common/signal_samples_140X/chain_m70_dm8_cfgRun24_140X_Run2024_test_03062025/Mini/',
-        'folder': 'chain_m70_dm8',
-        'tag': 'PUPPI_Signal_chain_m70_dm8'
-    },
-    {
-        'path': '/store/cmst3/group/softJets/common/signal_samples_140X/cascade_m100_31_cfgRun24_140X_Run2024_test_03062025/Mini/',
-        'folder': 'cascade_m100_31',
-        'tag': 'PUPPI_Signal_cascade_m100_31'
-    },
-    {
-        'path': '/store/cmst3/group/softJets/common/signal_samples_140X/cascade_m220_67_20_cfgRun24_140X_Run2024_test_03062025/Mini/',
-        'folder': 'cascade_m220_67_20',
-        'tag': 'PUPPI_Signal_cascade_m220_67_20'
+        'path': '/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM',
+        'folder': 'ttsemilep',
+        'tag': 'PUPPI_bkg_ttsemilep'
     },
 ]
 

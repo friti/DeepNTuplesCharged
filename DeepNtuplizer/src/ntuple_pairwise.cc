@@ -251,8 +251,11 @@ bool ntuple_pairwise::fillBranches(const pat::Jet & jet, const size_t& jetidx, c
 	deepntuples::TrackPairInfoBuilder trkpairinfo;
 	int ind_i = sortedcharged.at(i).get();
 	int ind_j = sortedcharged.at(j).get();
+	int n_daughters = static_cast<int>(jet.numberOfDaughters());
+	if (ind_i >= n_daughters || ind_j >= n_daughters) {
+	  continue;
+	}
 	const pat::PackedCandidate* Part_i_  = dynamic_cast<const pat::PackedCandidate*>(jet.daughter(ind_i));
-	
 	if(!Part_i_){
 	  std::cout << i << " Bug PackedCandidate " << j << std::endl;
 	}
@@ -265,7 +268,14 @@ bool ntuple_pairwise::fillBranches(const pat::Jet & jet, const size_t& jetidx, c
 	const reco::TransientTrack it = trackinfo.getTTrack();
 	trackinfo.buildTrackInfo(Part_j_,jetDir,jetRefTrackDir,pv);
 	const reco::TransientTrack tt = trackinfo.getTTrack();
-	
+	if (!vertices() || vertices()->empty()) {
+	  //std::cout << "Error: vertex collection is invalid or empty!" << std::endl;
+	  continue;
+	}
+	if (!it.isValid() || !tt.isValid()) {
+	  //std::cout << "Error: One or both TransientTracks are invalid!" << std::endl;
+	  continue;
+	}
 	trkpairinfo.buildTrackPairInfo(it,tt,vertices()->at(0),jet);
 
 	//const reco::Candidate * pruned_part_match1 = Part_i_.lastPrunedRef().get();
