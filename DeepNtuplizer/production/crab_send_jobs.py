@@ -28,11 +28,12 @@ def submit_crab_job(dataset_path, base_workarea, folder_name, output_tag):
     crab_config.JobType.psetName = 'DeepNtuplizer_pfc2.py'
     crab_config.JobType.allowUndistributedCMSSW = True
     crab_config.JobType.maxMemoryMB = 3500
+    crab_config.JobType.maxJobRuntimeMin = 3000
     crab_config.JobType.inputFiles = ["../python/QGL_cmssw8020_v2.db"]
 
     # Data
     crab_config.Data.splitting = 'FileBased'
-    crab_config.Data.unitsPerJob = 20
+    crab_config.Data.unitsPerJob = 2
     crab_config.Data.inputDBS = 'global'
     crab_config.Data.publication = False
     crab_config.Data.outputDatasetTag = output_tag
