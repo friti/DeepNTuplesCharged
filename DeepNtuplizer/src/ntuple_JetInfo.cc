@@ -55,7 +55,7 @@ void ntuple_JetInfo::getInput(const edm::ParameterSet& iConfig){
     KeepOnlyUDS_ = (iConfig.getParameter<bool>("KeepOnlyUDS"));
     KeepOnlyG_ = (iConfig.getParameter<bool>("KeepOnlyG"));
     KeepOnlyPU_ = (iConfig.getParameter<bool>("KeepOnlyPU"));
-
+    KeepSingleTau_ = (iConfig.getParameter<bool>("KeepSingleTau"));  
     
     vector<string> disc_names = iConfig.getParameter<vector<string> >("bDiscriminators");
     for(auto& name : disc_names) {
@@ -138,6 +138,7 @@ void ntuple_JetInfo::initBranches(TTree* tree){
     addBranch(tree,"jet_phi", &jet_phi_);
     addBranch(tree,"jet_mass", &jet_mass_);
     addBranch(tree,"jet_energy", &jet_energy_);
+    addBranch(tree,"jet_deepjet_probb", &jet_deepjet_probb_);
 
     //jet id
     addBranch(tree,"jet_looseId", &jet_looseId_);
@@ -1185,6 +1186,9 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
       gen_particle_daughters_charge_[i] = gen_particle_daughters_charge.at(i);
     }
 
+    if (!KeepSingleTau_) {
+      pos_matched_tauh = 0;
+    }
     //// Note that jets with gluon->bb (cc) and x->bb (cc) are in the same categories
     if(true){
       switch(deep_ntuples::jet_flavour(jet, gToBB, gToCC, neutrinosLepB, neutrinosLepB_C, alltaus_, pos_matched_genmu, pos_matched_genele, pos_matched_tauh, pos_matched_tauhtauh, pos_matched_tauhtaue, pos_matched_tauhtaumu, gentau_decaymode, tau_gen_charge)) {
@@ -1411,7 +1415,7 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
     jet_corr_pt_ = jet.pt();
     jet_mass_ = jet.mass();
     jet_energy_ = jet.energy();
-
+    jet_deepjet_probb_ = jet.bDiscriminator("pfDeepFlavourJetTags:probb") + jet.bDiscriminator("pfDeepFlavourJetTags:probbb") + jet.bDiscriminator("pfDeepFlavourJetTags:problepb");
     // Matching with gen-jets                                                                                                                                                                               
     int genjet_pos_matched = -1;
     float gen_minDR = dRCone;

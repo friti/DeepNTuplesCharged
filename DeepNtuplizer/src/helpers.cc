@@ -36,7 +36,8 @@ JetFlavor jet_flavour(const pat::Jet& jet,
 		      int gentau_decaymode,
 		      const std::vector<int> tau_gen_charge,
 		      bool usePhysForLightAndUndefined) { 
-    int hflav = abs(jet.hadronFlavour());
+
+  int hflav = abs(jet.hadronFlavour());
     int pflav = abs(jet.partonFlavour());
     int physflav = 0;
     int jet_tauflav_b, jet_tauhtauhflav_b, jet_tauhtaumuflav_b, jet_tauhtaueflav_b, jet_muflav_b, jet_elflav_b, jet_taudecaymode_b, jet_taucharge_b;
@@ -113,7 +114,7 @@ JetFlavor jet_flavour(const pat::Jet& jet,
     if((jet_muflav_b==0) & (jet_elflav_b==1) & (jet_tauflav_b==0)){return JetFlavor::ELE;}
 
     // single tau
-    //std::cout<<"jet_muflav_b "<<jet_muflav_b<<" jet_elflav_b "<<jet_elflav_b<<" jet_tauflav_b "<<jet_tauflav_b<<" jet_tauhtauhflav_b "<<jet_tauhtauhflav_b<<" jet_tauhtaumuflav_b "<<jet_tauhtaumuflav_b<<" jet_tauhtaueflav_b "<<jet_tauhtaueflav_b<<" jet_taudecaymode_b "<<jet_taudecaymode_b<<" jet_taucharge_b "<<jet_taucharge_b<<std::endl;
+
     if((jet_muflav_b==0) & (jet_elflav_b==0) & (jet_tauflav_b==1) & (jet_tauhtauhflav_b==0) & (jet_tauhtaumuflav_b==0) & (jet_tauhtaueflav_b==0) & (jet_taudecaymode_b==0) & (jet_taucharge_b>0)){return JetFlavor::TAUP1H0P;}
     if((jet_muflav_b==0) & (jet_elflav_b==0) & (jet_tauflav_b==1) & (jet_tauhtauhflav_b==0) & (jet_tauhtaumuflav_b==0) & (jet_tauhtaueflav_b==0) & (jet_taudecaymode_b==1) & (jet_taucharge_b>0)){return JetFlavor::TAUP1H1P;}
     if((jet_muflav_b==0) & (jet_elflav_b==0) & (jet_tauflav_b==1) & (jet_tauhtauhflav_b==0) & (jet_tauhtaumuflav_b==0) & (jet_tauhtaueflav_b==0) & (jet_taudecaymode_b==2) & (jet_taucharge_b>0)){return JetFlavor::TAUP1H2P;}

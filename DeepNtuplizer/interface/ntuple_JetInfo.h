@@ -115,7 +115,7 @@ public:
     bool                      KeepOnlyUDS_;
     bool                      KeepOnlyG_;
     bool                      KeepOnlyPU_;
-
+    bool                      KeepSingleTau_;
 
   int                      skip_jet_;
 
@@ -319,6 +319,7 @@ public:
     float  jet_phi_;
     float  jet_mass_;
     float  jet_energy_;
+    float  jet_deepjet_probb_;
 
     float jet_looseId_;
     int jet_jetId_;
