@@ -1187,7 +1187,7 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
     }
 
     if (!KeepSingleTau_) {
-      pos_matched_tauh = 0;
+      pos_matched_tauh = -1;
     }
     //// Note that jets with gluon->bb (cc) and x->bb (cc) are in the same categories
     if(true){
