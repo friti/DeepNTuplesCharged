@@ -10,7 +10,7 @@ cmsrel CMSSW_14_0_11
 cd CMSSW_14_0_11/src/
 cmsenv
 git cms-init
-git clone https://github.com/friti/DeepNTuplesCharged -n DeepNtuples
+git clone https://github.com/friti/DeepNTuplesCharged DeepNTuples -b bstautau
 cd DeepNTuples
 # Add JetToolBox
 git submodule init
