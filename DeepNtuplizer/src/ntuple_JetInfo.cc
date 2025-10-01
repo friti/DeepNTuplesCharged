@@ -73,6 +73,7 @@ void ntuple_JetInfo::initBranches(TTree* tree){
 
     // truth labels
     addBranch(tree,"gen_pt"    ,&gen_pt_    ,"gen_pt_/F"    );
+    addBranch(tree,"gen_mass"    ,&gen_mass_    ,"gen_mass_/F"    );
     addBranch(tree,"Delta_gen_pt"    ,&Delta_gen_pt_,"Delta_gen_pt_/F"    );
 
     addBranch(tree,"isMC",&isMC_, "isMC_/I");
@@ -1524,6 +1525,7 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
     jet_phflav_=0;
     if(jet.genParton()) jet_phflav_=abs(jet.genParton()->pdgId());
 
+    gen_mass_ =  0;
     gen_pt_ =  0;
     Delta_gen_pt_ =  0;
     gen_pt_Recluster_=0;
@@ -1541,6 +1543,8 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
     }
 
     if(jet.genJet()){
+        gen_mass_ =  jet.genJet()->mass();
+	//std::cout<<"gen jet mass"<<gen_mass_<<std::endl;
         gen_pt_ =  jet.genJet()->pt();
         Delta_gen_pt_ =  jet.genJet()->pt()- jet_pt_;
 

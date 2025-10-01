@@ -235,6 +235,7 @@ public:
     // regressions pt, Deta, Dphi
     float min_candidate_pt_;
     float gen_pt_;
+    float gen_mass_;
    
     float Delta_gen_pt_;
     //classification

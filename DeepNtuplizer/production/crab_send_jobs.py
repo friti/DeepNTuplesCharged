@@ -37,7 +37,7 @@ def submit_crab_job(dataset_path, base_workarea, folder_name, output_tag):
     crab_config.Data.inputDBS = 'global'
     crab_config.Data.publication = False
     crab_config.Data.outputDatasetTag = output_tag
-    crab_config.Data.outLFNDirBase = '/store/group/cmst3/group/bpark/friti/deepntuplizer/ntuples_June25/'
+    crab_config.Data.outLFNDirBase = '/store/group/cmst3/group/bpark/friti/deepntuplizer/ntuples_Oct1/'
 
     '''
     # Input files
@@ -71,8 +71,73 @@ base_workarea = os.path.join("crab_projects", today_str)
 datasets = [
     {
         'path': '/ttbarToBsToTauTau_BsFilter_TauTauFilter_TuneCP5_13TeV-pythia8-evtgen/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM',
-        'folder': 'bstautau_signal',
-        'tag': 'PUPPI_Signal_bstautau'
+        'folder': 'bstautau_sm_old',
+        'tag': 'PUPPI_Signal_sm_old'
+    },
+    {
+        'path': '/TTToBsToTauTau_TuneCP5_13TeV-pythia8-evtgen/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v3/MINIAODSIM',
+        'folder': 'bstautau_sm_new',
+        'tag': 'PUPPI_Signal_sm_new'
+    },
+    {
+        'path': '/TTToBsToTauTau_MBs-10_TuneCP5_13TeV-pythia8-evtgen/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM',
+        'folder': 'bstautau_mbs10',
+        'tag': 'PUPPI_Signal_mbs10'
+    },
+    {
+        'path': '/TTToBsToTauTau_MBs-3p6_TuneCP5_13TeV-pythia8-evtgen/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v3/MINIAODSIM',
+        'folder': 'bstautau_mbs3p6',
+        'tag': 'PUPPI_Signal_mbs3p6'
+    },
+    {
+        'path': '/TTToBsToTauTau_MBs-4_TuneCP5_13TeV-pythia8-evtgen/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v3/MINIAODSIM',
+        'folder': 'bstautau_mbs4',
+        'tag': 'PUPPI_Signal_mbs4'
+    },
+    {
+        'path': '/TTToBsToTauTau_MBs-4p5_TuneCP5_13TeV-pythia8-evtgen/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v3/MINIAODSIM',
+        'folder': 'bstautau_mbs4p5',
+        'tag': 'PUPPI_Signal_mbs4p5'
+    },
+    {
+        'path': '/TTToBsToTauTau_MBs-5p5_TuneCP5_13TeV-pythia8-evtgen/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v3/MINIAODSIM',
+        'folder': 'bstautau_mbs5p5',
+        'tag': 'PUPPI_Signal_mbs5p5'
+    },
+    {
+        'path': '/TTToBsToTauTau_MBs-6_TuneCP5_13TeV-pythia8-evtgen/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v3/MINIAODSIM',
+        'folder': 'bstautau_mbs6',
+        'tag': 'PUPPI_Signal_mbs6'
+    },
+    {
+        'path': '/TTToBsToTauTau_MBs-7_TuneCP5_13TeV-pythia8-evtgen/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v3/MINIAODSIM',
+        'folder': 'bstautau_mbs7',
+        'tag': 'PUPPI_Signal_mbs7'
+    },
+    {
+        'path': '/TTToBsToTauTau_MBs-7p5_TuneCP5_13TeV-pythia8-evtgen/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v3/MINIAODSIM',
+        'folder': 'bstautau_mbs7p5',
+        'tag': 'PUPPI_Signal_mbs7p5'
+    },
+    {
+        'path': '/TTToBsToTauTau_MBs-8_TuneCP5_13TeV-pythia8-evtgen/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v3/MINIAODSIM',
+        'folder': 'bstautau_mbs8',
+        'tag': 'PUPPI_Signal_mbs8'
+    },
+    {
+        'path': '/TTToBsToTauTau_MBs-9_TuneCP5_13TeV-pythia8-evtgen/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v3/MINIAODSIM',
+        'folder': 'bstautau_mbs9',
+        'tag': 'PUPPI_Signal_mbs9'
+    },
+    {
+        'path': '/TTToBsToTauTau_MBs-9p5_TuneCP5_13TeV-pythia8-evtgen/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v3/MINIAODSIM',
+        'folder': 'bstautau_mbs9p5',
+        'tag': 'PUPPI_Signal_mbs9p5'
+    },
+    {
+        'path': '/TTToBsToTauTau_MBs-10_TuneCP5_13TeV-pythia8-evtgen/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM',
+        'folder': 'bstautau_mbs10',
+        'tag': 'PUPPI_Signal_mbs10'
     },
     {
         'path': '/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM',
