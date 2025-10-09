@@ -19,9 +19,11 @@ public:
   Resonance(){};
   ~Resonance(){};
   TLorentzVector p4;
+  float ditau_visible_mass;
   int daugdecay; // 1: tau_h tau_h; 2: tau_h tau_mu; 3: tau_h tau_e
   std::vector<int> daugid;
   std::vector<TLorentzVector> daugp4;
+  float gen_mass;
 };
 
 template<typename T> 
@@ -110,15 +112,19 @@ void ntuple_JetInfo::initBranches(TTree* tree){
     addBranch(tree,"isDiTauh",&isDiTauh_, "isDiTauh_/I");
     addBranch(tree,"isDiTaumu",&isDiTaumu_, "isDiTaumu_/I");
     addBranch(tree,"isDiTaue",&isDiTaue_, "isDiTaue_/I");
+    addBranch(tree,"bsmeson_gen_mass",&bsmeson_gen_mass_, "bsmeson_gen_mass_/F");
+
     addBranch(tree,"isPU",&isPU_, "isPU_/I");
     addBranch(tree,"isUndefined",&isUndefined_, "isUndefined_/I");
     addBranch(tree,"genDecay",&genDecay_, "genDecay_/F"); 
+    addBranch(tree,"ditau_visible_mass",&ditau_visible_mass_, "ditau_visible_mass_/F");
     
     addBranch(tree,"jet_hflav", &jet_hflav_);
     addBranch(tree,"jet_pflav", &jet_pflav_);
     addBranch(tree,"jet_phflav", &jet_phflav_);
 
     // jet regression
+    addBranch(tree,"jet_genmatch_mass", &jet_genmatch_mass_);
     addBranch(tree,"jet_genmatch_pt", &jet_genmatch_pt_);
     addBranch(tree,"jet_genmatch_eta", &jet_genmatch_eta_);
     addBranch(tree,"jet_genmatch_phi", &jet_genmatch_phi_);
@@ -755,6 +761,8 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
 	std::vector<unsigned int> daughters;
 	bool is_tau_mu = false;
 	bool is_tau_e = false;
+  int lepton_genidx = -1;
+
 	for(size_t idau = 0; idau < (gen_particle_daughters_id).size(); idau++){
 	  if((gen_particle_daughters_igen).at(idau) == igen){ //check bs daughters
 	    if(abs((gen_particle_daughters_id).at(idau)) == 15){ // it's a tau
@@ -791,9 +799,12 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
                             if(abs((gen_particle_daughters_id).at(idau2)) == 11){ // it's an electron
                               if (debug){std::cout<< "tau decays in electron"<<std::endl;}
                               is_tau_e = true;
-			    }
+                              lepton_genidx = idau2;
+                              if(debug){std::cout<< "electron infos: pt "<<(gen_particle_daughters_pt).at(idau2)<<" eta "<<(gen_particle_daughters_eta).at(idau2)<<" phi "<<(gen_particle_daughters_phi).at(idau2)<<std::endl;}
+			    } 
                             else if(abs((gen_particle_daughters_id).at(idau2)) == 13){ // it's an electron
                               is_tau_mu = true;
+                              lepton_genidx = idau2;
                               if (debug){std::cout<< "tau decays in muon"<<std::endl;}
                             }
                           }
@@ -814,20 +825,60 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
 	  // if bs-> tau tau then I can save it (maybe it's useful to also save the taus?)
 	  if(skipTaus.size()==0){ // bs-> tau_X tau_X OR the hadronic tau too slow
 	    continue; // we don't save the resonance if not tau_h tau_X 
+      if(debug){std::cout<< "No hadronic tau from bs decay"<<std::endl;}
 	  }
           resonances.push_back(Resonance()); // Class
           resonances.back().p4 = resonance4V;
+          resonances.back().gen_mass = resonance4V.M();
           if(skipTaus.size()==2){ // bs-> tau_h tau_h
             resonances.back().daugdecay = 1;
+            if (debug){std::cout<< "Both taus hadronic from bs decay"<<std::endl;}
+            resonances.back().ditau_visible_mass = (tau_gen_visible.at(skipTaus.at(0))+tau_gen_visible.at(skipTaus.at(1))).M();
+            if(debug){std::cout<< "resonance ditau visible mass "<<resonances.back().ditau_visible_mass<<std::endl;}
+            if(debug){std::cout<< "hadronic tau 1 infos: pt "<<tau_gen_visible.at(skipTaus.at(0)).Pt()<<" eta "<<tau_gen_visible.at(skipTaus.at(0)).Eta()<<" phi "<<tau_gen_visible.at(skipTaus.at(0)).Phi()<<" mass "<<tau_gen_visible.at(skipTaus.at(0)).M()<<std::endl;}
+            if(debug){std::cout<< "hadronic tau 2 infos: pt "<<tau_gen_visible.at(skipTaus.at(1)).Pt()<<" eta "<<tau_gen_visible.at(skipTaus.at(1)).Eta()<<" phi "<<tau_gen_visible.at(skipTaus.at(1)).Phi()<<" mass "<<tau_gen_visible.at(skipTaus.at(1)).M()<<std::endl;}
           }
           else if(skipTaus.size()==1 and is_tau_mu){ // bs-> tau_h tau_mu
+            if(debug){std::cout<< "One tau hadronic and one tau muonic from bs decay"<<std::endl;}
             resonances.back().daugdecay = 2;
+            TLorentzVector lepton4V;
+            lepton4V.SetPtEtaPhiM(
+              (gen_particle_daughters_pt).at(lepton_genidx),
+              (gen_particle_daughters_eta).at(lepton_genidx),
+              (gen_particle_daughters_phi).at(lepton_genidx),
+              (gen_particle_daughters_mass).at(lepton_genidx)
+            );
+            resonances.back().ditau_visible_mass = (
+              tau_gen_visible.at(skipTaus.at(0)) + lepton4V
+            ).M();
+            if(debug){std::cout<< "resonance ditau visible mass "<<resonances.back().ditau_visible_mass<<std::endl;}
+            if(debug){std::cout<< "muon infos: pt "<<(gen_particle_daughters_pt).at(lepton_genidx)<<" eta "<<(gen_particle_daughters_eta).at(lepton_genidx)<<" phi "<<(gen_particle_daughters_phi).at(lepton_genidx)<<" mass "<<(gen_particle_daughters_mass).at(lepton_genidx)<<std::endl;}
+            if(debug){std::cout<< "hadronic tau infos: pt "<<tau_gen_visible.at(skipTaus.at(0)).Pt()<<" eta "<<tau_gen_visible.at(skipTaus.at(0)).Eta()<<" phi "<<tau_gen_visible.at(skipTaus.at(0)).Phi()<<" mass "<<tau_gen_visible.at(skipTaus.at(0)).M()<<std::endl;}
           }
           else if(skipTaus.size()==1 and is_tau_e){ // bs-> tau_h tau_e
             resonances.back().daugdecay = 3;
+            if(debug){std::cout<< "One tau hadronic and one tau electronic from bs decay"<<std::endl;}
+            if(debug){std::cout<< "lepton gen idx "<<lepton_genidx<<std::endl;}
+            if(debug){std::cout<< "lengh of gen particle daughter pt "<<gen_particle_daughters_pt.size()<<std::endl;}
+            // Yes, this is correct. TLorentzVector::SetPtEtaPhiM expects (pt, eta, phi, mass), not (px, py, pz, mass).
+            // The code below constructs a TLorentzVector using pt, eta, phi, mass:
+            TLorentzVector lepton4V;
+            lepton4V.SetPtEtaPhiM(
+              (gen_particle_daughters_pt).at(lepton_genidx),
+              (gen_particle_daughters_eta).at(lepton_genidx),
+              (gen_particle_daughters_phi).at(lepton_genidx),
+              (gen_particle_daughters_mass).at(lepton_genidx)
+            );
+            resonances.back().ditau_visible_mass = (
+              tau_gen_visible.at(skipTaus.at(0)) + lepton4V
+            ).M();
+            if(debug){std::cout<< "resonance ditau visible mass "<<resonances.back().ditau_visible_mass<<std::endl;}
+            if(debug){std::cout<< "electron infos: pt "<<(gen_particle_daughters_pt).at(lepton_genidx)<<" eta "<<(gen_particle_daughters_eta).at(lepton_genidx)<<" phi "<<(gen_particle_daughters_phi).at(lepton_genidx)<<" mass "<<(gen_particle_daughters_mass).at(lepton_genidx)<<std::endl;}
+            if(debug){std::cout<< "hadronic tau infos: pt "<<tau_gen_visible.at(skipTaus.at(0)).Pt()<<" eta "<<tau_gen_visible.at(skipTaus.at(0)).Eta()<<" phi "<<tau_gen_visible.at(skipTaus.at(0)).Phi()<<" mass "<<tau_gen_visible.at(skipTaus.at(0)).M()<<std::endl;}
           }
           if (debug){std::cout<< "resonance decay "<<resonances.back().daugdecay<<std::endl;}
-      }
+          if (debug){std::cout<< "resonance ditau visible mass "<<resonances.back().ditau_visible_mass<<std::endl;}
+        }
     }
 
 
@@ -842,7 +893,12 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
     int pos_matched_tauhtauh = -1; // for ditau label
     int pos_matched_tauhtaumu = -1; // for ditau label
     int pos_matched_tauhtaue = -1; // for ditau label
-    int gentau_decaymode = -1;   
+    int gentau_decaymode = -1;  
+    
+    float bsmeson_gen_mass = -1;
+
+    float ditau_visible_mass = -1;
+ 
     TLorentzVector genLepton4V;
     TLorentzVector genLeptonVis4V;
 
@@ -867,7 +923,11 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
 	else if ( resonances.at(ipair).daugdecay==3){
 	  pos_matched_tauhtaue = 1;
 	}
+  ditau_visible_mass = resonances.at(ipair).ditau_visible_mass;
+  bsmeson_gen_mass = resonances.at(ipair).gen_mass;
 	if(debug){std::cout<<"pos_matched_tauhtauh "<<pos_matched_tauhtauh<<" pos_matched_tauhtaumu "<<pos_matched_tauhtaumu<<" pos_matched_tauhtaue "<<pos_matched_tauhtaue<<std::endl;}
+  if(debug){std::cout<<"ditau visible mass "<<ditau_visible_mass<<std::endl;}
+
       }
     }
 
@@ -1229,6 +1289,8 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
 	if(debug){std::cout << "        !!!!!!!!! This jet is a single-tau!" << std::endl;}
       }
 
+
+
       if(debug){std::cout << "  isTaup1h0p_: " << isTaup1h0p_ << ", isTaup1h1p_: " << isTaup1h1p_
             << ", isTaup1h2p_: " << isTaup1h2p_ << ", isTaup3h0p_: " << isTaup3h0p_
 			  << ", isTaup3h1p_: " << isTaup3h1p_ << std::endl;}
@@ -1238,6 +1300,8 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
       if (isDiTauh_ || isDiTaumu_ || isDiTaue_) {
 	if(debug){std::cout << "        !!!!!!!!! This jet is a di-tau!  " <<std::endl;}
       }
+
+
       if(debug){std::cout << "  isDiTauh_: " << isDiTauh_ << ", isDiTaumu_: " << isDiTaumu_
 			  << ", isDiTaue_: " << isDiTaue_ << std::endl;}
 
@@ -1436,6 +1500,7 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
       }
     }
 
+    jet_genmatch_mass_ = -1.0;
     jet_genmatch_pt_ = -1.0;
     jet_genmatch_eta_ = -1.0;
     jet_genmatch_phi_ = -1.0;
@@ -1444,6 +1509,7 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
     jet_genmatch_wnu_phi_ = -1.0; 
 
     if(genjet_pos_matched >= 0){
+      jet_genmatch_mass_ = jetv_gen[genjet_pos_matched]->mass();
       jet_genmatch_pt_ = jetv_gen[genjet_pos_matched]->pt();
       jet_genmatch_eta_ = jetv_gen[genjet_pos_matched]->eta();
       jet_genmatch_phi_ = jetv_gen[genjet_pos_matched]->phi();
@@ -1544,6 +1610,10 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
 
     if(jet.genJet()){
         gen_mass_ =  jet.genJet()->mass();
+      // if bkg then put as ditau_visible_mass the jet gen mass 
+      if (ditau_visible_mass == -1) {
+        ditau_visible_mass = gen_mass_;
+      }
 	//std::cout<<"gen jet mass"<<gen_mass_<<std::endl;
         gen_pt_ =  jet.genJet()->pt();
         Delta_gen_pt_ =  jet.genJet()->pt()- jet_pt_;
@@ -1571,7 +1641,10 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
         Delta_gen_pt_Recluster_=gen_pt_Recluster_-jet.pt();
         Delta_gen_pt_WithNu_=gen_pt_WithNu_-jet.pt();
     }
-
+    ditau_visible_mass_ = ditau_visible_mass;
+    bsmeson_gen_mass_ = bsmeson_gen_mass;
+    if(debug) std::cout<<"bsmeson_gen_mass_: "<<bsmeson_gen_mass_<<std::endl;
+    if(debug && bsmeson_gen_mass_>0) std::cout<<"HERE WE HAVE BS!! bsmeson_gen_mass_: "<<bsmeson_gen_mass_<<std::endl;
     auto qgtuple=yuta::calcVariables(&jet);
     //(multiplicity, charged_multiplicity, neutral_multiplicity, ptD, axis1, axis2, pt_dr_log);
 
@@ -1584,7 +1657,6 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
     y_pt_dr_log_=std::get<6>(qgtuple);
 
     if(debug){std::cout<<"Are we saving the jet? "<<returnval<<std::endl;}
-
     /*
     if (returnval) {
     *used_gentaus_ = tmp_used_gentaus_;  // update the real set

@@ -236,7 +236,9 @@ public:
     float min_candidate_pt_;
     float gen_pt_;
     float gen_mass_;
-   
+    float ditau_visible_mass_;
+    float bsmeson_gen_mass_;
+
     float Delta_gen_pt_;
     //classification
     int isMC_;
@@ -302,6 +304,7 @@ public:
     int jet_no_;
 
     // jet regression targets
+    float jet_genmatch_mass_;
     float jet_genmatch_pt_;
     float jet_genmatch_wnu_pt_;
     float jet_genmatch_eta_;

@@ -37,7 +37,7 @@ def submit_crab_job(dataset_path, base_workarea, folder_name, output_tag):
     crab_config.Data.inputDBS = 'global'
     crab_config.Data.publication = False
     crab_config.Data.outputDatasetTag = output_tag
-    crab_config.Data.outLFNDirBase = '/store/group/cmst3/group/bpark/friti/deepntuplizer/ntuples_Oct1/'
+    crab_config.Data.outLFNDirBase = '/store/group/cmst3/group/bpark/friti/deepntuplizer/ntuples_Oct8/'
 
     '''
     # Input files
@@ -135,15 +135,10 @@ datasets = [
         'tag': 'PUPPI_Signal_mbs9p5'
     },
     {
-        'path': '/TTToBsToTauTau_MBs-10_TuneCP5_13TeV-pythia8-evtgen/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM',
-        'folder': 'bstautau_mbs10',
-        'tag': 'PUPPI_Signal_mbs10'
-    },
-    {
         'path': '/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM',
         'folder': 'ttsemilep',
         'tag': 'PUPPI_bkg_ttsemilep'
-    },
+    }
 ]
 
 workareas = []
