@@ -116,6 +116,8 @@ public:
     bool                      KeepOnlyG_;
     bool                      KeepOnlyPU_;
     bool                      KeepSingleTau_;
+    bool                      KeepOnlySignal_;
+    bool                      KeepOnlyBkg_;
 
   int                      skip_jet_;
 

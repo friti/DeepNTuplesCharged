@@ -24,6 +24,7 @@ public:
   std::vector<int> daugid;
   std::vector<TLorentzVector> daugp4;
   float gen_mass;
+  bool saving_jet = true;
 };
 
 template<typename T> 
@@ -58,6 +59,8 @@ void ntuple_JetInfo::getInput(const edm::ParameterSet& iConfig){
     KeepOnlyG_ = (iConfig.getParameter<bool>("KeepOnlyG"));
     KeepOnlyPU_ = (iConfig.getParameter<bool>("KeepOnlyPU"));
     KeepSingleTau_ = (iConfig.getParameter<bool>("KeepSingleTau"));  
+    KeepOnlySignal_ = (iConfig.getParameter<bool>("KeepOnlySignal"));  
+    KeepOnlyBkg_ = (iConfig.getParameter<bool>("KeepOnlyBkg"));  
     
     vector<string> disc_names = iConfig.getParameter<vector<string> >("bDiscriminators");
     for(auto& name : disc_names) {
@@ -750,9 +753,10 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
 
 
     // Build Bs-> di-tau resonance
-    std::vector<unsigned int> skipTaus;
     for(size_t igen = 0; igen < (gen_particle_pt).size(); igen++){
       if(abs((gen_particle_id).at(igen)) == 531){ // gen particle is a bs
+    std::vector<unsigned int> skipTaus;
+
 	TLorentzVector resonance4V; // save resonance 4V
 	resonance4V.SetPtEtaPhiM((gen_particle_pt).at(igen),(gen_particle_eta).at(igen) \
 ,(gen_particle_phi).at(igen),(gen_particle_mass).at(igen));
@@ -825,7 +829,7 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
 	  // if bs-> tau tau then I can save it (maybe it's useful to also save the taus?)
 	  if(skipTaus.size()==0){ // bs-> tau_X tau_X OR the hadronic tau too slow
 	    continue; // we don't save the resonance if not tau_h tau_X 
-      if(debug){std::cout<< "No hadronic tau from bs decay"<<std::endl;}
+	    if(debug){std::cout<< "No hadronic tau from bs decay"<<std::endl;}
 	  }
           resonances.push_back(Resonance()); // Class
           resonances.back().p4 = resonance4V;
@@ -852,6 +856,13 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
               tau_gen_visible.at(skipTaus.at(0)) + lepton4V
             ).M();
             if(debug){std::cout<< "resonance ditau visible mass "<<resonances.back().ditau_visible_mass<<std::endl;}
+            {
+              float check_val = resonances.back().ditau_visible_mass;
+              // detect NaN via check_val != check_val (no extra includes) and negative values
+              if (check_val != check_val || check_val < 0.f) {
+                if(debug)std::cout << "Invalid ditau_visible_mass: " << check_val<< std::endl;
+              }
+            }
             if(debug){std::cout<< "muon infos: pt "<<(gen_particle_daughters_pt).at(lepton_genidx)<<" eta "<<(gen_particle_daughters_eta).at(lepton_genidx)<<" phi "<<(gen_particle_daughters_phi).at(lepton_genidx)<<" mass "<<(gen_particle_daughters_mass).at(lepton_genidx)<<std::endl;}
             if(debug){std::cout<< "hadronic tau infos: pt "<<tau_gen_visible.at(skipTaus.at(0)).Pt()<<" eta "<<tau_gen_visible.at(skipTaus.at(0)).Eta()<<" phi "<<tau_gen_visible.at(skipTaus.at(0)).Phi()<<" mass "<<tau_gen_visible.at(skipTaus.at(0)).M()<<std::endl;}
           }
@@ -876,7 +887,13 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
             if(debug){std::cout<< "electron infos: pt "<<(gen_particle_daughters_pt).at(lepton_genidx)<<" eta "<<(gen_particle_daughters_eta).at(lepton_genidx)<<" phi "<<(gen_particle_daughters_phi).at(lepton_genidx)<<" mass "<<(gen_particle_daughters_mass).at(lepton_genidx)<<std::endl;}
             if(debug){std::cout<< "hadronic tau infos: pt "<<tau_gen_visible.at(skipTaus.at(0)).Pt()<<" eta "<<tau_gen_visible.at(skipTaus.at(0)).Eta()<<" phi "<<tau_gen_visible.at(skipTaus.at(0)).Phi()<<" mass "<<tau_gen_visible.at(skipTaus.at(0)).M()<<std::endl;}
           }
+          else{
+            resonances.back().saving_jet = false; // something wrong,wil not save the jet. prob one of the had taus is >5 GeV in its visible part
+	    if(debug){std::cout<<"The tau is hadronic, but probably not saved, so I don't want to save this jet"<<std::endl;}
+          }
           if (debug){std::cout<< "resonance decay "<<resonances.back().daugdecay<<std::endl;}
+	  if (debug){std::cout<<"skiptaus size"<<skipTaus.size()<<std::endl;}
+	  if (debug){std::cout<<"is e"<<is_tau_e<<" is mu "<<is_tau_mu<<std::endl;}
           if (debug){std::cout<< "resonance ditau visible mass "<<resonances.back().ditau_visible_mass<<std::endl;}
         }
     }
@@ -908,7 +925,11 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
 
     // matching jet- ditau
     
+  /// cuts ///
+    bool returnval=true;
+
     float mindR_jetres = 1000;
+    if(debug) std::cout<<"rensonance size, is it bkg or signal? "<<resonances.size()<<std::endl;
     for(size_t ipair = 0; ipair < resonances.size(); ipair++){ // find the bs that better maches with the reco ak4jet
       float dRjres = jet4V.DeltaR(resonances.at(ipair).p4);
       if(dRjres < 0.4 and dRjres < mindR_jetres){
@@ -923,16 +944,25 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
 	else if ( resonances.at(ipair).daugdecay==3){
 	  pos_matched_tauhtaue = 1;
 	}
+  if(resonances.at(ipair).saving_jet == false){
+    returnval = false;
+    if(debug){std::cout<<"Something wrong with the resonance, will not save the jet "<<std::endl;}
+  }
+    
+  
+  if(debug)std::cout<<"resonances ditau mass"<<resonances.at(ipair).ditau_visible_mass<<std::endl;
   ditau_visible_mass = resonances.at(ipair).ditau_visible_mass;
   bsmeson_gen_mass = resonances.at(ipair).gen_mass;
 	if(debug){std::cout<<"pos_matched_tauhtauh "<<pos_matched_tauhtauh<<" pos_matched_tauhtaumu "<<pos_matched_tauhtaumu<<" pos_matched_tauhtaue "<<pos_matched_tauhtaue<<std::endl;}
   if(debug){std::cout<<"ditau visible mass "<<ditau_visible_mass<<std::endl;}
 
       }
+
     }
 
     // single tau only for background samples (it is easier so I am sure there are no bs-> tautau)
     if(resonances.size()<1 and pos_matched_tauhtauh == -1 and pos_matched_tauhtaumu == -1 and  pos_matched_tauhtaue == -1){
+
 
       // Matching jet-single tau
       if(debug){std::cout<<" Not di-tau and not Bs  "<<minDR<<" "<<tau_gen_visible.size()<<std::endl;}
@@ -1154,8 +1184,7 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
       jet_taumatch_pt_ = -1;
     }
 
-    /// cuts ///
-    bool returnval=true;
+  
     
     // some cuts to contrin training region
     if ( jet.pt() < jetPtMin_ ||  jet.pt() > jetPtMax_ ) returnval=false;                  // apply jet pT cut
@@ -1306,6 +1335,24 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
 			  << ", isDiTaue_: " << isDiTaue_ << std::endl;}
 
     }
+
+    if(debug){std::cout<<"KeepOnlySignal_"<<KeepOnlySignal_<<std::endl;}
+    if(debug){std::cout<<"Resonance size "<<resonances.size()<<std::endl;}
+    if((KeepOnlySignal_==1) & ((isDiTauh_==0) & (isDiTaumu_==0) & (isDiTaue_==0))){
+      returnval = false;
+      if(debug){std::cout<<"KeepOnlySignal is True, and this is bkg, so the jet is not saved! "<<std::endl;}
+    }
+    
+    if(debug){std::cout<<"KeepOnlyBkg_"<<KeepOnlyBkg_<<std::endl;}
+    if((KeepOnlyBkg_==1) & ((isDiTauh_==1) | (isDiTaumu_==1) | (isDiTaue_==1))){
+      returnval = false;
+      if(debug){std::cout<<"KeepOnlyBkg is True, and this is signal, so the jet is not saved! "<<std::endl;}
+    }
+
+    if((KeepOnlyBkg_==1)) { // this is true for the ntuples that I will need for inference on only-signal trained models (because otherwise b-hive removes all the jets not in a defined class)
+      isDiTauh_ =1;
+    }
+    
     if (SkipPU_ && isPU_) returnval=false; 
     if (KeepOnlyB_ && !isB_ && !isBB_ && !isGBB_ && !isLeptonicB_ && isLeptonicB_C_) 
         returnval=false;
@@ -1610,9 +1657,13 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
 
     if(jet.genJet()){
         gen_mass_ =  jet.genJet()->mass();
-      // if bkg then put as ditau_visible_mass the jet gen mass 
+      if(debug)std::cout<<"Ciao! gen jet mass"<<gen_mass_<<std::endl;
+        // if bkg then put as ditau_visible_mass the jet gen mass 
+      if(debug)std::cout<<"before ditau_visible_mass "<<ditau_visible_mass<<std::endl;
+
       if (ditau_visible_mass == -1) {
         ditau_visible_mass = gen_mass_;
+        if(debug)std::cout<<"Ciao! gen jet mass assigned to ditau_visible_mass "<<ditau_visible_mass<<std::endl;
       }
 	//std::cout<<"gen jet mass"<<gen_mass_<<std::endl;
         gen_pt_ =  jet.genJet()->pt();
