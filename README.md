@@ -31,9 +31,9 @@ export X509_USER_PROXY=${HOME}/.gridproxy.pem
 Production
 ==========
 
-Before doing a batch submission you can test the ntuplizer locally in the production directory with:
+In the production folder, run:
 ```
-cmsRun DeepNtuplizer.py inputFiles=/path/to/file.root
+cmsRun DeepNtuplizer_pfc2.py inputFiles=/path/to/file.root
 ```
 The jobs can be submitted using the following syntax
 ```
