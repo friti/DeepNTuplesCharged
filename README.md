@@ -1,8 +1,8 @@
 # DeepNTuples
-NTuple framework for DeepFlavour
 
+Ntuple production for training in b-hive.
 
-Installation (CMSSW 13_0_13)
+Installation 
 ============
 
 ```
@@ -10,7 +10,7 @@ cmsrel CMSSW_14_0_11
 cd CMSSW_14_0_11/src/
 cmsenv
 git cms-init
-git clone https://github.com/friti/DeepNTuplesCharged DeepNtuples
+git clone https://github.com/friti/DeepNTuplesCharged DeepNTuples -b msjtaus
 cd DeepNTuples
 # Add JetToolBox
 git submodule init
@@ -19,22 +19,22 @@ git submodule update
 scram b -j 8
 ```
 
-Further settings
-============
-
-It is important to create your grid proxy in a location that is accessible by other nodes (there is no security issue, your full credentials are still needed for access). For this purpose, redirect the grid proxy location by adding the following to your login script:
-
-```
-export X509_USER_PROXY=${HOME}/.gridproxy.pem
-```
-
 Production
 ==========
 
 Before doing a batch submission you can test the ntuplizer locally in the production directory with:
 ```
-cmsRun DeepNtuplizer.py inputFiles=/path/to/file.root
+cmsRun DeepNtuplizer_pfc2.py 
 ```
+
+To submit the jobs on crab, use the `crab_submit_jobs.py` or `crab_submit_jobs_fromDAS.py` scripts, depending if the miniAOD input files are on DAS or on EOS. Be sure to modify the scripts with your own paths and input files.
+
+The scripts will create a new file `check_crab_jobs.sh`, which can be run with `source check_crab_jobs.sh` to check the status of the jobs on CRAB.
+
+
+Old Instructions
+==========
+
 The jobs can be submitted using the following syntax
 ```
 jobSub.py --file <sample file> DeepNtuplizer.py <batch directory> --outpath /path/to/output/directory/
