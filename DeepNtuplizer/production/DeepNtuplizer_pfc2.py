@@ -91,7 +91,9 @@ if options.nJobs > 1:
 #process.source.fileNames =  cms.untracked.vstring([ 'file:/eos/cms/store/cmst3/group/softJets/common/signal_samples_140X/cascade_m100_31_cfgRun24_140X_Run2024_test_03062025/Mini/job_0_step4.root','file:/eos/cms/store/cmst3/group/softJets/common/signal_samples_140X/cascade_m100_31_cfgRun24_140X_Run2024_test_03062025/Mini/job_1000_step4.root','file:/eos/cms/store/cmst3/group/softJets/common/signal_samples_140X/cascade_m100_31_cfgRun24_140X_Run2024_test_03062025/Mini/job_1001_step4.root', 'file:/eos/cms/store/cmst3/group/softJets/common/signal_samples_140X/cascade_m100_31_cfgRun24_140X_Run2024_test_03062025/Mini/job_1002_step4.root',]) 
 #process.source.fileNames =  cms.untracked.vstring([ 'file:/eos/cms/store/cmst3/group/softJets/common/signal_samples_140X/cascade_m100_31_cfgRun24_140X_Run2024_test_03062025/Mini/job_0_step4.root']) 
 
+process.source.fileNames =  cms.untracked.vstring([ '/store/mc/Run3Summer23MiniAODv4/DisorderCascade_mPhi3-100-mPhi2-31-mPhi1-8_TuneCP5_13p6TeV_madgraph-pythia8/MINIAODSIM/130X_mcRun3_2023_realistic_v15-v2/2550000/09bb6da7-6c6a-4466-9fa8-ad46e66526ad.root'])
 
+'''
 process.source.fileNames =  cms.untracked.vstring([ 'file:/eos/cms/store/cmst3/group/softJets/common/signal_samples_140X/cascade_m100_31_cfgRun24_140X_Run2024_test_03062025/Mini/job_0_step4.root',
 'file:/eos/cms/store/cmst3/group/softJets/common/signal_samples_140X/cascade_m100_31_cfgRun24_140X_Run2024_test_03062025/Mini/job_1000_step4.root',
 'file:/eos/cms/store/cmst3/group/softJets/common/signal_samples_140X/cascade_m100_31_cfgRun24_140X_Run2024_test_03062025/Mini/job_1001_step4.root',
@@ -154,7 +156,7 @@ process.source.fileNames =  cms.untracked.vstring([ 'file:/eos/cms/store/cmst3/g
 'file:/eos/cms/store/cmst3/group/softJets/common/signal_samples_140X/cascade_m100_31_cfgRun24_140X_Run2024_test_03062025/Mini/job_1053_step4.root',
 ]) 
 #'file:/eos/cms/store/cmst3/group/softJets/gkaratha/chain_m70_dm20_cfgRun24_133X_Run2024_test_10172024/Mini/chain_m70_dm20_'+str(i)+'_step5_mini.root' for i in range(1,50)]
-
+'''
 process.source.skipEvents = cms.untracked.uint32(options.skipEvents)
 process.maxEvents  = cms.untracked.PSet( 
     input = cms.untracked.int32 (options.maxEvents) 

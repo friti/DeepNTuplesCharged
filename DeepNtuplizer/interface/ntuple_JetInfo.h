@@ -311,6 +311,7 @@ public:
     float jet_mumatch_pt_;
     float jet_elematch_pt_;
     float jet_taumatch_pt_;
+    float jet_taumatch_gen_vis_pt_;
   
     // jet variables
     float jet_pt_;

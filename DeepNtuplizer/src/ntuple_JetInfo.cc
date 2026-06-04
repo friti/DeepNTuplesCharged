@@ -103,6 +103,7 @@ void ntuple_JetInfo::initBranches(TTree* tree){
     addBranch(tree,"isPU",&isPU_, "isPU_/I");
     addBranch(tree,"isUndefined",&isUndefined_, "isUndefined_/I");
     addBranch(tree,"genDecay",&genDecay_, "genDecay_/F"); 
+    addBranch(tree,"jet_taumatch_gen_vis_pt", &jet_taumatch_gen_vis_pt_);
     
     addBranch(tree,"jet_hflav", &jet_hflav_);
     addBranch(tree,"jet_pflav", &jet_pflav_);
@@ -477,9 +478,10 @@ void ntuple_JetInfo::readEvent(const edm::Event& iEvent){
                     neutrinosLepB_C.emplace_back(gen);
                 }
             }
+	    /*
             else {
                 std::cout << "No mother" << std::endl;
-            }
+		}*/
         }
 
         int id(std::abs(gen.pdgId())); 
@@ -802,7 +804,8 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
     TLorentzVector genLepton4V;
     TLorentzVector genLeptonVis4V;
 
-    skip_jet_ = 0;
+    //skip_jet_ = 0;
+    bool returnval=true;
     
     TLorentzVector jet4V;
     jet4V.SetPtEtaPhiM(jet.pt(),jet.eta(),jet.phi(),jet.mass());
@@ -849,6 +852,14 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
 	pos_matched_genmu  = -1;
 	pos_matched_genele = -1;
 	pos_matched_tauh = itau;
+
+	if(pos_matched_tauh >= 0 && pos_matched_ditauh == -1){
+	  jet_taumatch_gen_vis_pt_ = tau_gen_visible.at(pos_matched_tauh).Pt();
+	}
+	else{
+	  jet_taumatch_gen_vis_pt_ = -1;
+	}
+	
 	minDR = dR;
 	gentau_decaymode = 5*(tau_gen_nch.at(itau)-1)+tau_gen_np0.at(itau);
 	genLepton4V = tau_gen.at(itau);
@@ -887,7 +898,8 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
       }
       else if (pos_matched_ditauh != -1 and dR!=minDR and dR < 0.4){
 	//std::cout<<" Too many taus, so jet skipped "<<std::endl;
-	skip_jet_ = 1;
+	//skip_jet_ = 1;
+	returnval = false;
 	tmp_used_gentaus_.insert(itau);  // mark this tau as matched
       }
     }
@@ -1014,7 +1026,7 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
     }
 
     /// cuts ///
-    bool returnval=true;
+    //bool returnval=true;
     
     // some cuts to contrin training region
     if ( jet.pt() < jetPtMin_ ||  jet.pt() > jetPtMax_ ) returnval=false;                  // apply jet pT cut
